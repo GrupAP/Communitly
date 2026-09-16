@@ -17,8 +17,18 @@
 # los del despliegue actual en Coolify, puestos como default para no
 # depender de que ese campo este bien cargado en su panel — pero siguen
 # siendo variables: si el dominio cambia, se pisan desde Coolify sin tocar
-# este archivo. DJANGO_SECRET_KEY nunca lleva default: es un secreto de
-# verdad y no debe quedar en un archivo versionado.
+# este archivo.
+#
+# DJANGO_SECRET_KEY nunca lleva default (es un secreto de verdad y no debe
+# quedar en un archivo versionado) y usa la sintaxis "${VAR:?mensaje}" en
+# vez de dejarlo sin valor: Django no revisa que el SECRET_KEY no este vacio
+# al arrancar, asi que un contenedor sin esta variable arrancaria "sano" y
+# recien fallaria en el primer request que la necesite (login del admin,
+# cualquier POST con CSRF) con un error confuso. Mejor que ni arranque.
+# Ademas, el panel de Coolify solo deja editar variables que aparezcan como
+# "${VAR}" en el compose; con la sintaxis anterior (solo "DJANGO_SECRET_KEY:"
+# sin valor) las mostraba como "gestionadas por el Compose" y no dejaba
+# escribir un valor.
 services:
   backend:
     build: ./backend
@@ -26,11 +36,11 @@ services:
       - "8000"
     environment:
       SEED_DATA: "${SEED_DATA:-1}"
-      DJANGO_SECRET_KEY:
+      DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:?Genera uno y ponlo en las variables de entorno de Coolify}"
       DJANGO_DEBUG: "${DJANGO_DEBUG:-False}"
       DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-communitly-api.taws.espol.edu.ec,www.communitly-api.taws.espol.edu.ec}"
       DJANGO_CSRF_TRUSTED_ORIGINS: "${DJANGO_CSRF_TRUSTED_ORIGINS:-https://communitly-api.taws.espol.edu.ec,https://www.communitly-api.taws.espol.edu.ec}"
-      DJANGO_SEED_PASSWORD:
+      DJANGO_SEED_PASSWORD: "${DJANGO_SEED_PASSWORD:-espol2026}"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/comunidades/?estudiante_id=1"]
       interval: 10s
