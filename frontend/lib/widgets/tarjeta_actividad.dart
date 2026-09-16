@@ -4,14 +4,18 @@ import '../modelos/publicacion_instagram.dart';
 import '../tema/tema.dart';
 import '../tema/tema_publico.dart';
 import '../utilidades/abrir_url.dart';
+import 'intento_embed_instagram.dart';
 
 /// Tarjeta de "actividad reciente": miniatura propia + título + link al post
 /// original. Si la publicación no tiene una miniatura curada (el gestor no
 /// subió una, o se prefirió no reutilizar la foto de una persona), se muestra
-/// un marcador compacto del mismo tamaño en vez de intentar incrustar el post
-/// en vivo: el embed de Instagram queda en blanco en la mayoría de
-/// navegadores actuales (bloquean el acceso a su almacenamiento de terceros)
-/// y, aun cuando carga, es demasiado alto para convivir en una rejilla.
+/// un marcador compacto del mismo tamaño en su lugar.
+///
+/// Encima, en segundo plano, [IntentoEmbedInstagram] intenta el embed oficial
+/// en vivo por si el navegador de quien mira lo permite (la mayoría lo
+/// bloquea por defecto). Si carga, se ve encima de la miniatura, encogido al
+/// mismo tamaño; si no, la miniatura/marcador de abajo sigue siendo lo único
+/// visible y no hay ningún parpadeo ni espacio en blanco.
 class TarjetaActividad extends StatelessWidget {
   final PublicacionInstagram publicacion;
 
@@ -34,13 +38,27 @@ class TarjetaActividad extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 1,
-              child: publicacion.imagenUrl.isEmpty
-                  ? const _MarcadorSinImagen()
-                  : Image.network(
-                      publicacion.imagenUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const _MarcadorSinImagen(),
+              child: LayoutBuilder(
+                builder: (context, restricciones) => Stack(
+                  children: [
+                    Positioned.fill(
+                      child: publicacion.imagenUrl.isEmpty
+                          ? const _MarcadorSinImagen()
+                          : Image.network(
+                              publicacion.imagenUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const _MarcadorSinImagen(),
+                            ),
                     ),
+                    Positioned.fill(
+                      child: IntentoEmbedInstagram(
+                        url: publicacion.url,
+                        lado: restricciones.maxWidth,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             if (publicacion.titulo.isNotEmpty)
               Padding(
