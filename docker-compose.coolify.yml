@@ -8,14 +8,17 @@
 # (entrypoint.sh no existiria ahi). Aqui el contenedor usa el codigo tal
 # como quedo copiado dentro de la imagen en el build.
 #
-# API_BASE es obligatorio a proposito: si falta, el build falla ruidoso en
-# vez de compilar en silencio contra "localhost" (que rompería el sitio ya
-# desplegado sin ningún aviso).
-#
 # "expose" en vez de "ports": el proxy de Coolify llega al contenedor por la
 # red interna de Docker, no hace falta (ni conviene) publicar el puerto en
 # el host — sobre todo el 80, que el proxy de Coolify necesita para si
 # mismo en todas las apps del servidor.
+#
+# Los dominios de abajo (API_BASE, ALLOWED_HOSTS, CSRF_TRUSTED_ORIGINS) son
+# los del despliegue actual en Coolify, puestos como default para no
+# depender de que ese campo este bien cargado en su panel — pero siguen
+# siendo variables: si el dominio cambia, se pisan desde Coolify sin tocar
+# este archivo. DJANGO_SECRET_KEY nunca lleva default: es un secreto de
+# verdad y no debe quedar en un archivo versionado.
 services:
   backend:
     build: ./backend
@@ -24,9 +27,9 @@ services:
     environment:
       SEED_DATA: "${SEED_DATA:-1}"
       DJANGO_SECRET_KEY:
-      DJANGO_DEBUG:
-      DJANGO_ALLOWED_HOSTS:
-      DJANGO_CSRF_TRUSTED_ORIGINS:
+      DJANGO_DEBUG: "${DJANGO_DEBUG:-False}"
+      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-communitly-api.taws.espol.edu.ec,www.communitly-api.taws.espol.edu.ec}"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "${DJANGO_CSRF_TRUSTED_ORIGINS:-https://communitly-api.taws.espol.edu.ec,https://www.communitly-api.taws.espol.edu.ec}"
       DJANGO_SEED_PASSWORD:
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/comunidades/?estudiante_id=1"]
@@ -39,7 +42,7 @@ services:
     build:
       context: ./frontend
       args:
-        API_BASE: ${API_BASE:?Define API_BASE con la URL publica del backend, p. ej. https://api.tudominio.com/api}
+        API_BASE: "${API_BASE:-https://communitly-api.taws.espol.edu.ec/api}"
     expose:
       - "80"
     depends_on:
