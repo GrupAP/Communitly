@@ -15,9 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,7 +25,10 @@ urlpatterns = [
     path('api/', include('comunidades.urls')),
     path('api/', include('eventos.urls')),
     path('api/', include('solicitudes.urls')),
+    # Logos y miniaturas se sirven siempre, tambien con DEBUG=False: el
+    # helper static() de Django es un no-op en produccion y whitenoise solo
+    # cubre STATIC_ROOT, asi que sin esto los logos daban 404 en Coolify.
+    # Son archivos versionados en el repo (no subidas de usuarios), asi que
+    # servirlos desde Django alcanza para este volumen.
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

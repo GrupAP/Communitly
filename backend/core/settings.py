@@ -59,6 +59,11 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = os.environ.get('DJANGO_CORS_ALLOW_ALL', 'True') == 'True'
 
+# Detras del proxy de Coolify el TLS termina en el proxy y Django recibe HTTP
+# plano; sin esto request.build_absolute_uri() arma las URLs de logos e
+# imagenes con "http://" y el navegador las bloquea como contenido mixto.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # Application definition
 
