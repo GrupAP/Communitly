@@ -98,6 +98,8 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         ],
                         const SizedBox(height: 24),
                         _botonEntrar(),
+                        const SizedBox(height: 12),
+                        _botonVerSinSesion(),
                         if (kDebugMode) ...[
                           const SizedBox(height: 20),
                           _credencialesDePrueba(),
@@ -218,6 +220,15 @@ class _PantallaLoginState extends State<PantallaLogin> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Text('Entrar'),
+    );
+  }
+
+  /// Para quien todavía no tiene cuenta institucional (p. ej. un estudiante
+  /// de colegio): solo lectura, sin seguir comunidades ni enviar solicitudes.
+  Widget _botonVerSinSesion() {
+    return TextButton(
+      onPressed: () => context.go(Rutas.publico),
+      child: const Text('Ver el catálogo sin iniciar sesión'),
     );
   }
 

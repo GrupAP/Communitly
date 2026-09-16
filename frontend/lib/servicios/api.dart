@@ -21,13 +21,24 @@ class Api {
   /// El backend comprueba que gestione esa comunidad y responde 403 si no.
   static int get gestorId => Sesion.id;
 
+  /// El catálogo y el detalle también los ve un visitante sin sesión (RF-01
+  /// público): el backend acepta que falte `estudiante_id` y simplemente no
+  /// informa si el visitante sigue la comunidad.
+  static int? get _estudianteIdOpcional => Sesion.actualONulo?.id;
+
   static Future<List<Comunidad>> listarComunidades({
     String texto = '',
     String categoria = '',
+    String facultad = '',
+    String nivelActividad = '',
   }) async {
-    final parametros = {'estudiante_id': '$estudianteId'};
+    final idOpcional = _estudianteIdOpcional;
+    final parametros = <String, String>{};
+    if (idOpcional != null) parametros['estudiante_id'] = '$idOpcional';
     if (texto.isNotEmpty) parametros['q'] = texto;
     if (categoria.isNotEmpty) parametros['categoria'] = categoria;
+    if (facultad.isNotEmpty) parametros['facultad'] = facultad;
+    if (nivelActividad.isNotEmpty) parametros['nivel_actividad'] = nivelActividad;
 
     final datos = await ClienteApi.obtener(
       '/comunidades/',
@@ -42,9 +53,10 @@ class Api {
   }
 
   static Future<Comunidad> detalleComunidad(int id) async {
+    final idOpcional = _estudianteIdOpcional;
     final datos = await ClienteApi.obtener(
       '/comunidades/$id/',
-      parametros: {'estudiante_id': '$estudianteId'},
+      parametros: idOpcional == null ? {} : {'estudiante_id': '$idOpcional'},
       errorPorDefecto: 'No se encontró la comunidad',
     );
 

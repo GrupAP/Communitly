@@ -71,13 +71,17 @@ void main() {
     expect(find.byTooltip('Ocultar contraseña'), findsOneWidget);
   });
 
-  testWidgets('sin sesión el enrutador manda al login', (tester) async {
-    responderPorRuta(const []);
+  testWidgets('sin sesión el enrutador manda al catálogo público',
+      (tester) async {
+    responderPorRuta([
+      ('/comunidades/', {'comunidades': <Map<String, dynamic>>[]}),
+    ]);
 
     await montarApp(tester);
     await asentar(tester);
 
-    expect(find.text('Entra con tu cuenta institucional'), findsOneWidget);
+    expect(find.text('Iniciar sesión'), findsOneWidget);
+    expect(find.textContaining('CATÁLOGO PÚBLICO'), findsOneWidget);
   });
 
   testWidgets('al entrar se abre la sesión y se llega al catálogo',
@@ -113,7 +117,11 @@ void main() {
       ),
     ]);
 
+    // Sin sesión, la raíz muestra el catálogo público: hay que entrar por
+    // su botón "Iniciar sesión" antes de llegar al formulario.
     await montarApp(tester);
+    await asentar(tester);
+    await tester.tap(find.text('Iniciar sesión'));
     await asentar(tester);
 
     await tester.enterText(find.byType(TextFormField).first, 'estudiante1');
@@ -121,6 +129,10 @@ void main() {
     await tester.tap(find.text('Entrar'));
     await asentar(tester);
     await asentar(tester);
+    // La transición de página del login al catálogo tarda un poco más: sin
+    // esto, a veces la pantalla pública y la privada quedan montadas a la vez
+    // (ambas comparten el mismo titular) y el finder encuentra dos.
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(Sesion.activa, isTrue);
     expect(find.text('Descubre tu próxima comunidad'), findsOneWidget);

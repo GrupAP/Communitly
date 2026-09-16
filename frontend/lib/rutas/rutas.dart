@@ -17,7 +17,14 @@ class Rutas {
   static const String catalogo = '/catalogo';
   static const String solicitudes = '/solicitudes';
 
+  /// Catálogo público (sin sesión): solo lectura, para quien todavía no
+  /// tiene cuenta institucional (p. ej. un estudiante de colegio explorando
+  /// los clubes de ESPOL).
+  static const String publico = '/publico';
+
   static String comunidad(int id) => '/comunidad/$id';
+
+  static String publicoComunidad(int id) => '/publico/comunidad/$id';
 
   static String bandeja(int id) => '/comunidad/$id/bandeja';
 }
@@ -34,14 +41,23 @@ class Rutas {
 /// usuario, sin navegación manual.
 GoRouter crearEnrutador() {
   return GoRouter(
-    initialLocation: Rutas.catalogo,
+    initialLocation: '/',
     refreshListenable: Sesion.usuario,
     redirect: (BuildContext context, GoRouterState estado) {
+      // Sin ruta (la raíz del sitio), la puerta de entrada es el catálogo
+      // público, para quien todavía no tiene cuenta institucional. Quien ya
+      // inició sesión sigue yendo directo a su catálogo de siempre.
+      if (estado.matchedLocation == '/') {
+        return Sesion.activa ? Rutas.catalogo : Rutas.publico;
+      }
+
       final enLogin = estado.matchedLocation == Rutas.login;
+      final esPublica = estado.matchedLocation.startsWith(Rutas.publico);
 
       if (!Sesion.activa) {
-        // Se recuerda a dónde quería ir para volver ahí tras entrar.
-        if (enLogin) return null;
+        // Lo público se ve sin cuenta; el resto pide iniciar sesión y
+        // recuerda a dónde quería ir para volver ahí tras entrar.
+        if (enLogin || esPublica) return null;
         final destino = estado.uri.toString();
         return Uri(
           path: Rutas.login,
@@ -75,6 +91,22 @@ GoRouter crearEnrutador() {
         name: 'catalogo',
         builder: (BuildContext context, GoRouterState estado) =>
             const PantallaCatalogo(),
+      ),
+      GoRoute(
+        path: Rutas.publico,
+        name: 'publico',
+        builder: (BuildContext context, GoRouterState estado) =>
+            const PantallaCatalogo(publico: true),
+      ),
+      GoRoute(
+        path: '/publico/comunidad/:id',
+        name: 'publico-comunidad',
+        redirect: (BuildContext context, GoRouterState estado) =>
+            _idValido(estado.pathParameters['id']) ? null : Rutas.publico,
+        builder: (BuildContext context, GoRouterState estado) => PantallaDetalle(
+          comunidadId: int.parse(estado.pathParameters['id']!),
+          publico: true,
+        ),
       ),
       GoRoute(
         path: Rutas.solicitudes,

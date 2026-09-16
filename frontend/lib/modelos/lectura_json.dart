@@ -58,4 +58,11 @@ extension LecturaJson on Map<String, dynamic> {
     if (valor is! List) return const [];
     return valor.whereType<Map<String, dynamic>>().toList();
   }
+
+  /// Lista de texto, saltando las entradas que no lo sean.
+  List<String> listaDeTexto(String clave) {
+    final valor = this[clave];
+    if (valor is! List) return const [];
+    return valor.whereType<String>().toList();
+  }
 }
