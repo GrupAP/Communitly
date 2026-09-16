@@ -11,11 +11,16 @@
 # API_BASE es obligatorio a proposito: si falta, el build falla ruidoso en
 # vez de compilar en silencio contra "localhost" (que rompería el sitio ya
 # desplegado sin ningún aviso).
+#
+# "expose" en vez de "ports": el proxy de Coolify llega al contenedor por la
+# red interna de Docker, no hace falta (ni conviene) publicar el puerto en
+# el host — sobre todo el 80, que el proxy de Coolify necesita para si
+# mismo en todas las apps del servidor.
 services:
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
       SEED_DATA: "${SEED_DATA:-1}"
       DJANGO_SECRET_KEY:
@@ -35,7 +40,7 @@ services:
       context: ./frontend
       args:
         API_BASE: ${API_BASE:?Define API_BASE con la URL publica del backend, p. ej. https://api.tudominio.com/api}
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - backend
