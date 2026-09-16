@@ -1,0 +1,41 @@
+# Variante de docker-compose.yml para un despliegue real (Coolify o
+# cualquier servidor remoto). La diferencia con el archivo local es que NO
+# monta el codigo como volumen: ese bind mount existe solo para el
+# vivo-recarga en desarrollo, y en el servidor de despliegue "./backend" no
+# apunta al codigo (apunta a lo que sea que haya en esa ruta relativa dentro
+# del checkout que use la herramienta de despliegue), asi que pisaria /app
+# con un directorio vacio y el contenedor no podria ni arrancar
+# (entrypoint.sh no existiria ahi). Aqui el contenedor usa el codigo tal
+# como quedo copiado dentro de la imagen en el build.
+#
+# API_BASE es obligatorio a proposito: si falta, el build falla ruidoso en
+# vez de compilar en silencio contra "localhost" (que rompería el sitio ya
+# desplegado sin ningún aviso).
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      SEED_DATA: "${SEED_DATA:-1}"
+      DJANGO_SECRET_KEY:
+      DJANGO_DEBUG:
+      DJANGO_ALLOWED_HOSTS:
+      DJANGO_CSRF_TRUSTED_ORIGINS:
+      DJANGO_SEED_PASSWORD:
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/comunidades/?estudiante_id=1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_BASE: ${API_BASE:?Define API_BASE con la URL publica del backend, p. ej. https://api.tudominio.com/api}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
