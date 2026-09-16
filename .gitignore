@@ -26,6 +26,7 @@ env/
 *.sqlite3
 *.sqlite3-journal
 /staticfiles/
+backend/staticfiles/
 /media/
 .mypy_cache/
 .pytest_cache/

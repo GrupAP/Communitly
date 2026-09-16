@@ -1,3 +1,4 @@
+import os
 from datetime import date, time, timedelta
 
 from django.contrib.auth.models import User
@@ -7,6 +8,8 @@ from django.utils import timezone
 from comunidades.models import Comunidad, Seguimiento
 from eventos.models import Evento
 from solicitudes.models import Solicitud
+
+CLAVE_SEMILLA = os.environ.get('DJANGO_SEED_PASSWORD', 'espol2026')
 
 ESTUDIANTES = [
     ('mfernandez', 'María', 'Fernández'),
@@ -130,7 +133,7 @@ class Command(BaseCommand):
         for username, nombre, apellido in ESTUDIANTES:
             if not User.objects.filter(username=username).exists():
                 User.objects.create_user(
-                    username=username, password='espol2026',
+                    username=username, password=CLAVE_SEMILLA,
                     first_name=nombre, last_name=apellido,
                 )
 
@@ -140,7 +143,7 @@ class Command(BaseCommand):
                 continue
             gestor = User.objects.filter(username=username).first()
             if gestor is None:
-                gestor = User.objects.create_user(username=username, password='espol2026')
+                gestor = User.objects.create_user(username=username, password=CLAVE_SEMILLA)
             comunidad.gestores.add(gestor)
 
         seguidores_nuevos = 0

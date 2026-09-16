@@ -1,9 +1,13 @@
+import os
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from comunidades.models import Comunidad
 from solicitudes.models import Solicitud
+
+CLAVE_SEMILLA = os.environ.get('DJANGO_SEED_PASSWORD', 'espol2026')
 
 # (usuario del gestor, comunidad que administra)
 GESTORES = [
@@ -110,5 +114,5 @@ class Command(BaseCommand):
     def crear_usuario(self, username):
         usuario = User.objects.filter(username=username).first()
         if usuario is None:
-            usuario = User.objects.create_user(username=username, password='espol2026')
+            usuario = User.objects.create_user(username=username, password=CLAVE_SEMILLA)
         return usuario

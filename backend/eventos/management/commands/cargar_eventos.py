@@ -1,3 +1,4 @@
+import os
 from datetime import date, time, timedelta
 
 from django.contrib.auth.models import User
@@ -7,6 +8,7 @@ from comunidades.models import Comunidad
 from eventos.models import Evento
 
 GESTORES = ['gestor1']
+CLAVE_SEMILLA = os.environ.get('DJANGO_SEED_PASSWORD', 'espol2026')
 
 
 class Command(BaseCommand):
@@ -15,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for username in GESTORES:
             if not User.objects.filter(username=username).exists():
-                User.objects.create_user(username=username, password='espol2026')
+                User.objects.create_user(username=username, password=CLAVE_SEMILLA)
         gestor = User.objects.filter(username=GESTORES[0]).first()
 
         comunidades = list(Comunidad.objects.filter(activa=True)[:3])
@@ -49,5 +51,5 @@ class Command(BaseCommand):
             creados += 1 if creado else 0
 
         self.stdout.write(self.style.SUCCESS(
-            f'Listo: {creados} eventos nuevos creados. Gestor de prueba: {GESTORES[0]} / espol2026'
+            f'Listo: {creados} eventos nuevos creados. Gestor de prueba: {GESTORES[0]}'
         ))

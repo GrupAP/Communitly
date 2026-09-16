@@ -1,7 +1,14 @@
+import os
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from comunidades.models import Categoria, Comunidad, Facultad, PublicacionInstagram
+
+# En local (sin definir la variable) sigue siendo 'espol2026' como siempre;
+# en un despliegue real conviene fijar DJANGO_SEED_PASSWORD a algo propio,
+# porque este archivo (y por lo tanto la contrasena por defecto) es publico.
+CLAVE_SEMILLA = os.environ.get('DJANGO_SEED_PASSWORD', 'espol2026')
 
 # Facultades de ESPOL con al menos un club en COMUNIDADES, mas "Multi-facultad"
 # para comunidades institucionales/transversales que no viven en una sola
@@ -65,7 +72,6 @@ FACULTAD_POR_COMUNIDAD = {
     'BIOSOC ESPOL': 'FCV',
     'Kawsay': 'FCV',
     'AUCE': 'Multi-facultad',
-    '593 Guides Club': 'FCSH',
 }
 
 # nombre de la comunidad -> archivo en backend/media/logos/ (logos reales
@@ -99,6 +105,18 @@ LOGO_POR_COMUNIDAD = {
     'ACP': 'acp.png',
     'FANPOL': 'fanpol.png',
     'AUCE': 'accion.png',
+    # Estos 9 no tenian logo propio: se uso la foto de perfil publica de su
+    # cuenta de Instagram (misma fuente que instagram/nivel_actividad).
+    'ACI ESPOL': 'aci.jpg',
+    'AIChE ESPOL': 'aiche.jpg',
+    'ASHRAE ESPOL': 'ashrae.jpg',
+    'Alucine': 'alucine.jpg',
+    'IAHR ESPOL': 'iahr.jpg',
+    'Kawsay': 'kawsay.jpg',
+    'Liga Deportiva Politécnica': 'ldp.jpg',
+    'MatEs': 'mates.jpg',
+    'RAS ESPOL': 'ras.jpg',
+    'D-PRO': 'dpro.jpg',
 }
 
 # nombre de la comunidad -> ficha informativa (carrera, fundado,
@@ -292,10 +310,12 @@ COMUNIDADES = [
      'organiza talleres de suelda y competencias de robótica como '
      'Robomatrix.',
      '', True, 'https://www.instagram.com/club_mecatronica_espol/', 'activo'),
+    # Ultima publicacion visible es de dic-2025 (~9 meses antes de esta
+    # verificacion), aunque el resto del perfil se ve bien mantenido.
     ('RAS ESPOL', 'Tecnología',
      'Robotics & Automation Society: capítulo técnico de IEEE ESPOL '
      'enfocado en robótica y automatización, distinto del club Robota.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/ras_espol/', 'poco_activo'),
     ('Célula Estudiantil Microsoft ESPOL', 'Tecnología',
      'Comunidad estudiantil de FIEC centrada en ingeniería de software, '
      'robótica e interacción humano-computadora usando tecnologías '
@@ -315,11 +335,11 @@ COMUNIDADES = [
     ('MatEs', 'Ciencias',
      'Club de la FCNM dedicado a la divulgación y competencias de '
      'matemáticas.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/mates_espol/', 'activo'),
     ('AAPG ESPOL', 'Ciencias',
      'Capítulo estudiantil de la American Association of Petroleum '
      'Geologists, enfocado en geología del petróleo (FICT).',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/aapgespol/', 'activo'),
     ('Yaku Club de Buceo Investigativo', 'Ciencias',
      'Club de buceo científico que forma a estudiantes en ciencias marinas '
      'y certificación de buceo (CMAS/FEDASUB).',
@@ -327,11 +347,11 @@ COMUNIDADES = [
     ('ASME ESPOL', 'Ingeniería',
      'Capítulo estudiantil de la American Society of Mechanical Engineers '
      'en FIMCP.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/asme_espol/', 'activo'),
     ('ASHRAE ESPOL', 'Ingeniería',
      'Capítulo estudiantil ASHRAE de FIMCP enfocado en calefacción, '
      'ventilación, refrigeración y aire acondicionado.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/ashrae_espol/', 'activo'),
     ('MAEC', 'Ingeniería',
      'Mecánica Automotriz ESPOL Club: club de FIMCP dedicado a la mecánica '
      'automotriz.',
@@ -339,20 +359,22 @@ COMUNIDADES = [
     ('AIChE ESPOL', 'Ingeniería',
      'Capítulo estudiantil del American Institute of Chemical Engineers en '
      'FCNM.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/aiche.espol/', 'activo'),
     ('ACI ESPOL', 'Ingeniería',
      'Capítulo estudiantil del American Concrete Institute, especializado '
      'en cemento y concreto (FICT).',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/aci_espol/', 'activo'),
+    # Ultima publicacion visible es de oct-2025 (~11 meses antes que las demas
+    # verificaciones de esta tanda, que tienen posts de 2026): poco activo.
     ('ASCE ESPOL', 'Ingeniería',
      'Capítulo estudiantil de la American Society of Civil Engineers en '
      'FICT.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/asce.espol/', 'poco_activo'),
     ('IAHR ESPOL', 'Ingeniería',
      'Capítulo estudiantil de la International Association for '
      'Hydro-Environment Engineering and Research, enfocado en hidráulica y '
      'medioambiente (FICT).',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/iahrespol/', 'activo'),
     ('Club Emprende', 'Negocios',
      'Club vinculado al Centro de Emprendimiento e Innovación (i3lab) que '
      'impulsa proyectos de emprendimiento estudiantil.',
@@ -365,10 +387,10 @@ COMUNIDADES = [
      '', True, '', 'sin_verificar'),
     ('Alucine', 'Arte',
      'Cineclub de FADCOM: proyecciones y análisis de cine.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/alucineclub/', 'poco_activo'),
     ('D-PRO', 'Arte',
      'Club de FADCOM enfocado en diseño de producto.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/clubdpro/', 'activo'),
     ('Argumentum', 'Cultura',
      'Club de debate y oratoria de la ESPOL, activo desde el 1 de agosto de '
      '2014; organiza torneos internos, ligas, conversatorios académicos y '
@@ -383,32 +405,30 @@ COMUNIDADES = [
     ('FANPOL', 'Cultura',
      'Familia Anime Politécnica: comunidad dedicada a la cultura asiática '
      '(anime, manga, gastronomía y tradiciones de Japón, Corea y China).',
-     '', True, '', 'activo'),
+     '', True, 'https://www.instagram.com/clubfanpol.espol/', 'activo'),
     ('Liga Deportiva Politécnica', 'Deportes',
      'Liga deportiva estudiantil de ESPOL que organiza torneos y '
      'actividades deportivas entre facultades.',
-     '', True, '', 'activo'),
+     '', True, 'https://www.instagram.com/ldp_espol/', 'activo'),
     ('BIOSOC ESPOL', 'Ciencias',
      'Biological Society ESPOL: grupo estudiantil de biología (FCV), avalado '
      'por la Royal Society, con salidas de campo, ferias científicas y '
      'proyectos de conservación (Yasuní, bosques secos).',
      'biosoc@espol.edu.ec', True, 'https://www.instagram.com/biosocespol/', 'poco_activo'),
+    # Su Instagram no publica desde jul-2021 (~5 anios): se marca inactivo,
+    # igual que se hizo con 593 Guides Club, pero se deja activa=True porque
+    # no se confirmo que el club en si haya desaparecido (RECICRAWR se sigue
+    # mencionando en notas de prensa de la facultad).
     ('Kawsay', 'Cultura',
      'Comunidad de la FCV enfocada en sostenibilidad y reciclaje, organiza '
      'actividades como el concurso RECICRAWR junto a la Asociación '
      'Estudiantil de la facultad.',
-     '', True, '', 'sin_verificar'),
+     '', True, 'https://www.instagram.com/clubkawsay/', 'inactivo'),
     ('AUCE', 'Cultura',
      'Acción Universitaria: comunidad de liderazgo juvenil y acción '
      'solidaria de orientación católica, abierta a estudiantes de '
      'cualquier facultad.',
-     '', True, '', 'sin_verificar'),
-    # Cuenta de Instagram real pero sin publicar desde 2014: se marca inactivo
-    # en vez de excluirlo, para no perder el registro de que existió.
-    ('593 Guides Club', 'Negocios',
-     'Club estudiantil de turismo y guianza de la FCSH. Su cuenta de '
-     'Instagram lleva más de una década sin actividad.',
-     '', False, 'https://www.instagram.com/593guidesclub/', 'inactivo'),
+     '', True, 'https://www.instagram.com/accionistaespol/', 'activo'),
 ]
 
 # nombre de la comunidad -> sus 3 publicaciones mas recientes en Instagram
@@ -633,6 +653,98 @@ PUBLICACIONES_POR_COMUNIDAD = {
         {'url': 'https://www.instagram.com/biosocespol/p/DAbH6mYRTKc/',
          'titulo': 'Recap de actividades del semestre', 'imagen': 'DAbH6mYRTKc.jpg'},
     ],
+    'D-PRO': [
+        {'url': 'https://www.instagram.com/clubdpro/p/DbnvMiuO5Vj/',
+         'titulo': 'Charla sobre el proceso creativo de BRUT Studio', 'imagen': ''},
+    ],
+    'ACI ESPOL': [
+        {'url': 'https://www.instagram.com/aci_espol/p/DbdjKRggG3D/',
+         'titulo': 'Charla de liderazgo estudiantil junto a ASCE ESPOL', 'imagen': ''},
+        {'url': 'https://www.instagram.com/aci_espol/p/DdNjZGTgvX8/',
+         'titulo': 'Demostración educativa de un filtro de agua', 'imagen': ''},
+    ],
+    'RAS ESPOL': [
+        {'url': 'https://www.instagram.com/ras_espol/p/Dc6ONinNIkG/',
+         'titulo': 'Charla del IEEE Control Systems Society sobre sistemas electrónicos',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/retodelpacifico_/p/DdFmAyWxczV/',
+         'titulo': 'Promoción de la competencia de robótica Reto del Pacífico 2026',
+         'imagen': ''},
+    ],
+    'MatEs': [
+        {'url': 'https://www.instagram.com/mates_espol/p/DbUKEUUDwVu/',
+         'titulo': 'Participación de estudiantes y docentes en la escuela EMALCA', 'imagen': ''},
+        {'url': 'https://www.instagram.com/mates_espol/p/DYTGZE8EQgX/',
+         'titulo': 'Conmemoración del Día Internacional de las Mujeres en la Matemática',
+         'imagen': ''},
+    ],
+    'AAPG ESPOL': [
+        {'url': 'https://www.instagram.com/aapgespol/p/DcY2vI2uqbk/',
+         'titulo': "Calendario educativo \"Geonoredad del mes\" sobre sistemas petroleros",
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/aapgespol/p/DbMNnv4D9UF/',
+         'titulo': 'Calendario educativo de geología con sesiones de curso', 'imagen': ''},
+    ],
+    'ASME ESPOL': [
+        {'url': 'https://www.instagram.com/asme_espol/p/DcEP53vRAoY/',
+         'titulo': 'Taller de control de calidad y ensayos no destructivos en FIMCP',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/asme_espol/p/DbbHsD5Rn1n/',
+         'titulo': 'Charla técnica sobre ingeniería de sistemas de bombeo', 'imagen': ''},
+    ],
+    'ASHRAE ESPOL': [
+        {'url': 'https://www.instagram.com/ashrae_espol/p/DbwCgdXBLDa/',
+         'titulo': 'Contenido educativo sobre sistemas de climatización (HVAC)', 'imagen': ''},
+        {'url': 'https://www.instagram.com/ashrae_espol/p/DZ5bfY-h6jF/',
+         'titulo': 'Publicación técnica sobre aire acondicionado y termostatos', 'imagen': ''},
+    ],
+    'AIChE ESPOL': [
+        {'url': 'https://www.instagram.com/aiche.espol/p/Dawj_UdlVe8/',
+         'titulo': 'Difusión de cursos gratuitos y pagados de AIChE Academy', 'imagen': ''},
+        {'url': 'https://www.instagram.com/aiche.espol/p/Dag_CwSFSZW/',
+         'titulo': 'Curso de diseño de redes de agua potable con EPANET', 'imagen': ''},
+    ],
+    'ASCE ESPOL': [
+        {'url': 'https://www.instagram.com/asce.espol/p/DbyvchrFAms/',
+         'titulo': 'Visita técnica a "La Qondesa" con inscripción para socios y estudiantes',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/asce.espol/p/DboINehlGTa/',
+         'titulo': 'Webinar gratuito sobre gestión de residuos para la ingeniería', 'imagen': ''},
+    ],
+    'IAHR ESPOL': [
+        {'url': 'https://www.instagram.com/iahrespol/p/DZOqmpqPMBC/',
+         'titulo': 'Visita técnica a Cuenca: laboratorios de potabilización de agua',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/iahrespol/p/DRSp4gVEr54/',
+         'titulo': 'Visita a la planta de tratamiento de agua Atahualpa-Santa Elena',
+         'imagen': ''},
+    ],
+    'Alucine': [
+        {'url': 'https://www.instagram.com/alucineclub/p/DRzuX3LjST1/',
+         'titulo': 'Concurso "Diciembre Alucinante" con suscripción de streaming de premio',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/alucineclub/p/DQj18i2DWZs/',
+         'titulo': 'Función y análisis de la película Frankenweenie', 'imagen': ''},
+    ],
+    'FANPOL': [
+        {'url': 'https://www.instagram.com/clubfanpol.espol/p/DdAnr8_ER9J/',
+         'titulo': 'Participación en Expo Corea 2026 en Quito', 'imagen': ''},
+        {'url': 'https://www.instagram.com/clubfanpol.espol/p/DcmQhvzGmmM/',
+         'titulo': 'Festival de cine de Studio Ghibli en ESPOL', 'imagen': ''},
+    ],
+    'Liga Deportiva Politécnica': [
+        {'url': 'https://www.instagram.com/espol.femeninofc/p/Dcmuv-UOedm/',
+         'titulo': 'Anuncio de semifinal de fútbol femenino ESPOL', 'imagen': ''},
+        {'url': 'https://www.instagram.com/espol.masculinofc/p/DcmuLFdxw39/',
+         'titulo': 'Anuncio de cuartos de final de fútbol masculino ESPOL', 'imagen': ''},
+    ],
+    'AUCE': [
+        {'url': 'https://www.instagram.com/accionistaespol/p/DbGv6xCBy0W/',
+         'titulo': 'Espacio de lectura reflexiva "Latia Duvrina" en el cubículo del club',
+         'imagen': ''},
+        {'url': 'https://www.instagram.com/accionistaespol/p/Da11aVJRKbA/',
+         'titulo': 'Invitación a rezar la Coronilla de la Divina Misericordia', 'imagen': ''},
+    ],
 }
 
 ESTUDIANTES = ['estudiante1', 'estudiante2']
@@ -710,7 +822,7 @@ class Command(BaseCommand):
 
         for username in ESTUDIANTES:
             if not User.objects.filter(username=username).exists():
-                User.objects.create_user(username=username, password='espol2026')
+                User.objects.create_user(username=username, password=CLAVE_SEMILLA)
 
         con_logo = Comunidad.objects.exclude(logo='').count()
         con_actividad = Comunidad.objects.filter(publicaciones_instagram__isnull=False).distinct().count()

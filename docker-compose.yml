@@ -8,7 +8,15 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
       # SEED_DATA=0 arranca sin cargar los datos de ejemplo
-      SEED_DATA: "1"
+      SEED_DATA: "${SEED_DATA:-1}"
+      # Sin valor: Compose las toma del entorno/.env si existen y si no, no
+      # las define dentro del contenedor (a diferencia de "${VAR:-}", que
+      # metería un string vacío y pisaría el valor por defecto de settings.py).
+      DJANGO_SECRET_KEY:
+      DJANGO_DEBUG:
+      DJANGO_ALLOWED_HOSTS:
+      DJANGO_CSRF_TRUSTED_ORIGINS:
+      DJANGO_SEED_PASSWORD:
     volumes:
       # Codigo montado en vivo: runserver recarga solo al guardar
       - ./backend:/app
@@ -25,8 +33,13 @@ services:
     build:
       context: ./frontend
       args:
-        # El navegador corre en el host, por eso usa el puerto publicado
-        API_BASE: http://localhost:${BACKEND_PORT:-8000}/api
+        # Se compila DENTRO del bundle de Flutter web: en local apunta al
+        # puerto publicado en este host; en un despliegue real (Coolify) hay
+        # que definir API_BASE en las variables de entorno del build con la
+        # URL publica del backend (p. ej. https://api.tudominio.com/api),
+        # porque quien lo ejecuta es el navegador de cada visitante, no este
+        # contenedor.
+        API_BASE: ${API_BASE:-http://localhost:${BACKEND_PORT:-8000}/api}
     container_name: communitly-frontend
     ports:
       - "${FRONTEND_PORT:-8080}:80"

@@ -4,6 +4,9 @@ set -e
 echo "==> Aplicando migraciones"
 python manage.py migrate --noinput
 
+echo "==> Recolectando archivos estaticos"
+python manage.py collectstatic --noinput
+
 # Los tres comandos son idempotentes: se pueden correr en cada arranque.
 if [ "${SEED_DATA:-1}" = "1" ]; then
   echo "==> Cargando datos de ejemplo"
