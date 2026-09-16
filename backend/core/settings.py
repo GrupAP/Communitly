@@ -34,8 +34,12 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-# Coma-separado, p. ej. "api.midominio.com,www.midominio.com"
-ALLOWED_HOSTS = [
+# Coma-separado, p. ej. "api.midominio.com,www.midominio.com". localhost y
+# 127.0.0.1 van siempre incluidos (pase lo que pase con la variable de
+# entorno): el healthcheck de Docker corre DENTRO del contenedor contra
+# http://localhost:8000, y runserver ni arranca si ALLOWED_HOSTS queda
+# vacio con DEBUG=False.
+ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + [
     h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
 ]
 

@@ -19,13 +19,9 @@
 # siendo variables: si el dominio cambia, se pisan desde Coolify sin tocar
 # este archivo.
 #
-# ALLOWED_HOSTS SIEMPRE debe incluir "localhost": el healthcheck de abajo
-# corre DENTRO del contenedor contra "http://localhost:8000", y con
-# DEBUG=False Django ya no permite localhost de forma implicita. Sin esto el
-# healthcheck nunca pasa (siempre 400), Coolify nunca ve el contenedor
-# "healthy" y su proxy responde 503 aunque Django si este arriba y sirviendo
-# bien. Si se pisa DJANGO_ALLOWED_HOSTS desde Coolify, hay que mantener
-# "localhost" en la lista por la misma razon.
+# localhost/127.0.0.1 (que el healthcheck de abajo necesita) ya no dependen
+# de este archivo ni de si Coolify manda algo en DJANGO_ALLOWED_HOSTS:
+# settings.py los agrega siempre, sin importar el valor de la variable.
 #
 # DJANGO_SECRET_KEY nunca lleva default (es un secreto de verdad y no debe
 # quedar en un archivo versionado) y usa la sintaxis "${VAR:?mensaje}" en
@@ -46,7 +42,7 @@ services:
       SEED_DATA: "${SEED_DATA:-1}"
       DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:?Genera uno y ponlo en las variables de entorno de Coolify}"
       DJANGO_DEBUG: "${DJANGO_DEBUG:-False}"
-      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,communitly-api.taws.espol.edu.ec,www.communitly-api.taws.espol.edu.ec}"
+      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-communitly-api.taws.espol.edu.ec,www.communitly-api.taws.espol.edu.ec}"
       DJANGO_CSRF_TRUSTED_ORIGINS: "${DJANGO_CSRF_TRUSTED_ORIGINS:-https://communitly-api.taws.espol.edu.ec,https://www.communitly-api.taws.espol.edu.ec}"
       DJANGO_SEED_PASSWORD: "${DJANGO_SEED_PASSWORD:-espol2026}"
     healthcheck:
