@@ -69,7 +69,7 @@ def llamar(metodo, ruta, cuerpo=None, espera=None):
 def preparar():
     """Deja el escenario en su estado inicial para que la demo sea repetible."""
     comunidad = Comunidad.objects.filter(nombre='CIAP', gestores__isnull=False).first()
-    otra = Comunidad.objects.filter(nombre='NIOT', activa=True).first()
+    otra = Comunidad.objects.filter(nombre='NIoT', activa=True).first()
     if comunidad is None or otra is None:
         sys.exit('Faltan datos: ejecute cargar_datos y luego cargar_solicitudes')
 

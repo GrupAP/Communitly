@@ -31,17 +31,35 @@ def obtener_estudiante(request):
         return None
 
 
-def comunidad_a_dict(comunidad, seguidas=None):
+def comunidad_a_dict(comunidad, seguidas=None, detallado=False):
     datos = {
         'id': comunidad.id,
         'nombre': comunidad.nombre,
         'descripcion': comunidad.descripcion,
         'categoria': comunidad.categoria.nombre,
+        'facultad': comunidad.facultad.nombre if comunidad.facultad else '',
+        'facultad_descripcion': comunidad.facultad.descripcion if comunidad.facultad else '',
         'contacto': comunidad.contacto,
+        'instagram': comunidad.instagram,
+        'nivel_actividad': comunidad.nivel_actividad,
         'seguidores': comunidad.total_seguidores(),
     }
     if seguidas is not None:
         datos['siguiendo'] = comunidad.id in seguidas
+    if detallado:
+        # Ficha informativa: solo en el detalle, y solo lo que de verdad se
+        # sepa de ese club. El frontend oculta cada fila vacia en vez de
+        # mostrar un dato inventado.
+        datos.update({
+            'carrera': comunidad.carrera,
+            'fundado': comunidad.fundado,
+            'reuniones': comunidad.reuniones,
+            'lugar_reuniones': comunidad.lugar_reuniones,
+            'membresia': comunidad.membresia,
+            'publicaciones_instagram': [
+                p.url for p in comunidad.publicaciones_instagram.all()
+            ],
+        })
     return datos
 
 
@@ -69,6 +87,14 @@ def listar_comunidades(request):
     if categoria:
         comunidades = comunidades.filter(categoria__nombre__iexact=categoria)
 
+    facultad = request.GET.get('facultad', '').strip()
+    if facultad:
+        comunidades = comunidades.filter(facultad__nombre__iexact=facultad)
+
+    nivel_actividad = request.GET.get('nivel_actividad', '').strip()
+    if nivel_actividad:
+        comunidades = comunidades.filter(nivel_actividad__iexact=nivel_actividad)
+
     seguidas = comunidades_seguidas(request)
     resultados = [comunidad_a_dict(c, seguidas) for c in comunidades]
     return responder({'total': len(resultados), 'comunidades': resultados})
@@ -80,7 +106,7 @@ def detalle_comunidad(request, comunidad_id):
     if comunidad is None:
         return responder({'error': 'La comunidad no existe o no está activa'}, status=404)
 
-    return responder(comunidad_a_dict(comunidad, comunidades_seguidas(request)))
+    return responder(comunidad_a_dict(comunidad, comunidades_seguidas(request), detallado=True))
 
 
 @csrf_exempt
