@@ -34,20 +34,28 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-# Coma-separado, p. ej. "api.midominio.com,www.midominio.com". localhost y
-# 127.0.0.1 van siempre incluidos (pase lo que pase con la variable de
-# entorno): el healthcheck de Docker corre DENTRO del contenedor contra
-# http://localhost:8000, y runserver ni arranca si ALLOWED_HOSTS queda
-# vacio con DEBUG=False.
-ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + [
-    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
-]
+# Coma-separado, p. ej. "api.midominio.com,www.midominio.com". Van siempre
+# incluidos, pase lo que pase con la variable de entorno (se vio en
+# despliegue que DJANGO_ALLOWED_HOSTS podia llegar vacia igual): localhost y
+# 127.0.0.1 porque el healthcheck de Docker corre DENTRO del contenedor
+# contra http://localhost:8000 (y runserver ni arranca si ALLOWED_HOSTS
+# queda vacio con DEBUG=False), y el dominio real de Coolify para que el
+# sitio ya desplegado no dependa de que ese campo se haya guardado bien.
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'communitly-api.taws.espol.edu.ec',
+    'www.communitly-api.taws.espol.edu.ec',
+] + [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()]
 
 # Necesario para el login del admin (usa CSRF) detras de un proxy HTTPS como
 # el de Coolify. Coma-separado, con esquema: "https://api.midominio.com".
+# El dominio real va siempre incluido por la misma razon que en
+# ALLOWED_HOSTS: no depender de que la variable de entorno llegue bien.
 CSRF_TRUSTED_ORIGINS = [
-    o.strip() for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()
-]
+    'https://communitly-api.taws.espol.edu.ec',
+    'https://www.communitly-api.taws.espol.edu.ec',
+] + [o.strip() for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
 CORS_ALLOW_ALL_ORIGINS = os.environ.get('DJANGO_CORS_ALLOW_ALL', 'True') == 'True'
 
