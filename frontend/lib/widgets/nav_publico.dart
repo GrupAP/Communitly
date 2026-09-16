@@ -23,15 +23,18 @@ class NavPublico extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: compacto ? 16 : 32, vertical: 14),
       child: Row(
         children: [
-          _marca(),
-          const Spacer(),
-          _botonLogin(context),
+          Expanded(child: _marca(compacto: compacto)),
+          const SizedBox(width: 12),
+          _botonLogin(context, compacto: compacto),
         ],
       ),
     );
   }
 
-  Widget _marca() {
+  /// En un teléfono de 320-390 px "ESPOL Comunidades" + el botón de entrar no
+  /// caben en una sola fila: en compacto se acorta a "ESPOL" (con elipsis de
+  /// respaldo si aun así no cupiera) y se cede el espacio sobrante al botón.
+  Widget _marca({required bool compacto}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -50,37 +53,41 @@ class NavPublico extends StatelessWidget {
           child: const Icon(Icons.groups_rounded, size: 18, color: Colors.white),
         ),
         const SizedBox(width: 10),
-        RichText(
-          text: const TextSpan(children: [
-            TextSpan(
-              text: 'ESPOL ',
-              style: TextStyle(
-                color: AppColores.azulEspol,
-                fontWeight: FontWeight.w800,
-                fontSize: 18,
+        Flexible(
+          child: RichText(
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(children: [
+              const TextSpan(
+                text: 'ESPOL ',
+                style: TextStyle(
+                  color: AppColores.azulEspol,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
               ),
-            ),
-            TextSpan(
-              text: 'Comunidades',
-              style: TextStyle(color: ColoresPublico.textoSecundario, fontSize: 18),
-            ),
-          ]),
+              if (!compacto)
+                const TextSpan(
+                  text: 'Comunidades',
+                  style: TextStyle(color: ColoresPublico.textoSecundario, fontSize: 18),
+                ),
+            ]),
+          ),
         ),
       ],
     );
   }
 
-  Widget _botonLogin(BuildContext context) {
+  Widget _botonLogin(BuildContext context, {required bool compacto}) {
     return FilledButton.icon(
       onPressed: () => context.go(Rutas.login),
       style: FilledButton.styleFrom(
         backgroundColor: AppColores.azulEspol,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: compacto ? 12 : 16, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       icon: const Icon(Icons.login, size: 16),
-      label: const Text('Iniciar sesión'),
+      label: Text(compacto ? 'Entrar' : 'Iniciar sesión'),
     );
   }
 }

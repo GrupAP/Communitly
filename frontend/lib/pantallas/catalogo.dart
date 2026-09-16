@@ -710,11 +710,19 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
           children: [
             Text('$etiqueta: ',
                 style: const TextStyle(fontSize: 12, color: ColoresPublico.textoSecundario)),
-            Text(valor,
+            // Flexible + ellipsis: en un teléfono angosto un valor largo (p. ej.
+            // "Todas las facultades") se recorta en vez de desbordar la fila.
+            Flexible(
+              child: Text(
+                valor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: ColoresPublico.textoPrimario)),
+                    color: ColoresPublico.textoPrimario),
+              ),
+            ),
             const SizedBox(width: 2),
             const Icon(Icons.keyboard_arrow_down_rounded,
                 size: 16, color: ColoresPublico.textoSecundario),
@@ -735,14 +743,18 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
           children: [
             const Icon(Icons.swap_vert_rounded, size: 16, color: ColoresPublico.textoSecundario),
             const SizedBox(width: 6),
-            Text(
-              switch (_ordenPublico) {
-                'seguidores' => 'Más seguidos',
-                'actividad' => 'Más activos',
-                _ => 'Recomendado',
-              },
-              style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w600, color: ColoresPublico.textoPrimario),
+            Flexible(
+              child: Text(
+                switch (_ordenPublico) {
+                  'seguidores' => 'Más seguidos',
+                  'actividad' => 'Más activos',
+                  _ => 'Recomendado',
+                },
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600, color: ColoresPublico.textoPrimario),
+              ),
             ),
             const Icon(Icons.keyboard_arrow_down_rounded,
                 size: 16, color: ColoresPublico.textoSecundario),

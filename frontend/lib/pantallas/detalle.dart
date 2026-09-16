@@ -371,12 +371,23 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
           ),
         ),
         _separadorMiga(),
-        Text(comunidad.categoria,
-            style: const TextStyle(color: ColoresPublico.textoSecundario, fontSize: 13)),
-        _separadorMiga(),
+        // Flexible en los dos: en un teléfono angosto la categoría se recorta
+        // primero (flex menor) y el nombre del club, que es lo que identifica
+        // la página, se lleva la mayor parte del espacio que quede.
         Flexible(
           child: Text(
+            comunidad.categoria,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: ColoresPublico.textoSecundario, fontSize: 13),
+          ),
+        ),
+        _separadorMiga(),
+        Flexible(
+          flex: 2,
+          child: Text(
             comunidad.nombre,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: ColoresPublico.textoPrimario,

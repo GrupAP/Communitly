@@ -25,6 +25,29 @@ Map<String, dynamic> catalogoCon(List<Map<String, dynamic>> comunidades) => {
       'comunidades': comunidades,
     };
 
+/// Con facultad, nivel de actividad e Instagram: los campos extra que solo
+/// pinta la tarjeta de la vista pública.
+Map<String, dynamic> comunidadPublicaJson(
+  int id,
+  String nombre,
+  String categoria,
+) =>
+    {
+      'id': id,
+      'nombre': nombre,
+      'descripcion': 'Descripción bastante larga de $nombre, para comprobar '
+          'que el texto se recorta en vez de desbordar la tarjeta en un '
+          'teléfono angosto.',
+      'categoria': categoria,
+      'facultad': 'FIEC',
+      'facultad_descripcion': 'Ingeniería en Electricidad y Computación',
+      'contacto': '$nombre@espol.edu.ec',
+      'logo': '',
+      'instagram': 'https://www.instagram.com/$nombre/',
+      'nivel_actividad': 'activo',
+      'seguidores': 12,
+    };
+
 void main() {
   setUp(abrirSesionDePrueba);
 
@@ -136,4 +159,25 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('C1'), findsOneWidget);
   });
+
+  for (final ancho in [320.0, 360.0, 390.0]) {
+    testWidgets(
+        'la vista pública tampoco se desborda a ${ancho.toInt()} px de ancho',
+        (tester) async {
+      responderCon(catalogoCon([
+        for (var i = 1; i <= 3; i++)
+          comunidadPublicaJson(i, 'Club de Prueba $i', 'Ingeniería'),
+      ]));
+
+      tester.view.physicalSize = Size(ancho, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await montar(tester, const PantallaCatalogo(publico: true));
+      await asentar(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Club de Prueba 1'), findsOneWidget);
+    });
+  }
 }
