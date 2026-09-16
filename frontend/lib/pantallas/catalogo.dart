@@ -49,6 +49,12 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
   int _totalClubes = 0;
   Timer? _retrasoBusqueda;
 
+  /// Renderizar las ~50 comunidades de un tirón se sentía pesado y la
+  /// pantalla quedaba interminable: se pagina en el cliente porque el
+  /// backend ya manda la lista filtrada completa en una sola respuesta.
+  static const _tamanoPagina = 12;
+  int _pagina = 0;
+
   /// Contador de peticiones. Sin él, filtrar rápido podía pintar el resultado
   /// de una búsqueda anterior encima de la actual, porque nada garantiza que
   /// las respuestas lleguen en el orden en que se pidieron.
@@ -90,6 +96,7 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
 
       setState(() {
         _estado = ConDatos(lista);
+        _pagina = 0;
         // Las categorías, facultades y el total solo se deducen de un listado
         // sin filtrar; con filtros la lista sería incompleta.
         if (_categorias.isEmpty && !_hayFiltros) {
@@ -133,6 +140,38 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
   void _filtrarPorNivelActividad(String nivel) {
     setState(() => _nivelActividadActivo = nivel);
     _cargar();
+  }
+
+  /// Recorta `lista` a los elementos de la página actual.
+  List<T> _paginaDe<T>(List<T> lista) {
+    final inicio = _pagina * _tamanoPagina;
+    if (inicio >= lista.length) return const [];
+    return lista.sublist(inicio, (inicio + _tamanoPagina).clamp(0, lista.length));
+  }
+
+  Widget _controlesPagina(int totalItems) {
+    final totalPaginas = (totalItems / _tamanoPagina).ceil();
+    if (totalPaginas <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: _pagina > 0 ? () => setState(() => _pagina--) : null,
+            icon: const Icon(Icons.chevron_left),
+            tooltip: 'Página anterior',
+          ),
+          Text('Página ${_pagina + 1} de $totalPaginas'),
+          IconButton(
+            onPressed: _pagina < totalPaginas - 1 ? () => setState(() => _pagina++) : null,
+            icon: const Icon(Icons.chevron_right),
+            tooltip: 'Página siguiente',
+          ),
+        ],
+      ),
+    );
   }
 
   void _limpiarFiltros() {
@@ -364,8 +403,9 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
           ),
           const SizedBox(height: 12),
           RejillaResponsiva(
-            hijos: [for (final comunidad in lista) _tarjeta(comunidad)],
+            hijos: [for (final comunidad in _paginaDe(lista)) _tarjeta(comunidad)],
           ),
+          _controlesPagina(lista.length),
         ],
       ),
     );
@@ -696,7 +736,11 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
             const Icon(Icons.swap_vert_rounded, size: 16, color: ColoresPublico.textoSecundario),
             const SizedBox(width: 6),
             Text(
-              _ordenPublico == 'seguidores' ? 'Más seguidos' : 'Recomendado',
+              switch (_ordenPublico) {
+                'seguidores' => 'Más seguidos',
+                'actividad' => 'Más activos',
+                _ => 'Recomendado',
+              },
               style: const TextStyle(
                   fontSize: 13, fontWeight: FontWeight.w600, color: ColoresPublico.textoPrimario),
             ),
@@ -707,6 +751,15 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
       ),
     );
   }
+
+  /// Menor rango = más activo. Se usa para el orden "Más activos primero".
+  int _rangoActividad(String nivel) => switch (nivel) {
+        'activo' => 0,
+        'poco_activo' => 1,
+        'sin_verificar' => 2,
+        'inactivo' => 3,
+        _ => 4,
+      };
 
   String _nombreNivelActividad(String nivel) => switch (nivel) {
         'activo' => 'Activo',
@@ -761,10 +814,16 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
       actual: _ordenPublico,
       opciones: const [
         MapEntry('Recomendado', ''),
+        MapEntry('Más activos primero', 'actividad'),
         MapEntry('Más seguidos primero', 'seguidores'),
       ],
     );
-    if (elegido != null) setState(() => _ordenPublico = elegido);
+    if (elegido != null) {
+      setState(() {
+        _ordenPublico = elegido;
+        _pagina = 0;
+      });
+    }
   }
 
   Future<String?> _mostrarSelectorHoja({
@@ -824,6 +883,9 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
         final ordenada = [...lista];
         if (_ordenPublico == 'seguidores') {
           ordenada.sort((a, b) => b.seguidores.compareTo(a.seguidores));
+        } else if (_ordenPublico == 'actividad') {
+          ordenada.sort((a, b) =>
+              _rangoActividad(a.nivelActividad).compareTo(_rangoActividad(b.nivelActividad)));
         }
 
         return Padding(
@@ -842,8 +904,9 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
               ),
               const SizedBox(height: 16),
               RejillaResponsiva(
-                hijos: [for (final c in ordenada) _tarjetaPublica(c)],
+                hijos: [for (final c in _paginaDe(ordenada)) _tarjetaPublica(c)],
               ),
+              _controlesPagina(ordenada.length),
             ],
           ),
         );

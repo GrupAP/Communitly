@@ -15,6 +15,7 @@ class FacultadAdmin(admin.ModelAdmin):
 
 class PublicacionInstagramInline(admin.TabularInline):
     model = PublicacionInstagram
+    fields = ['titulo', 'url', 'imagen', 'orden']
     extra = 1
 
 

@@ -82,6 +82,14 @@ class PublicacionInstagram(models.Model):
         Comunidad, on_delete=models.CASCADE, related_name='publicaciones_instagram',
     )
     url = models.URLField()
+    # titulo corto de la actividad (a mano, a partir del caption real del
+    # post) para mostrar sobre el embed sin tener que leer el caption
+    # completo de Instagram.
+    titulo = models.CharField(max_length=150, blank=True)
+    # nombre de archivo en backend/media/actividades/ (miniatura propia,
+    # capturada a mano). Se deja en blanco para posts que no tengan una
+    # imagen curada; el frontend cae al embed en vivo de Instagram en ese caso.
+    imagen = models.CharField(max_length=120, blank=True)
     orden = models.PositiveSmallIntegerField(default=0)
     agregada_en = models.DateTimeField(auto_now_add=True)
 

@@ -38,6 +38,14 @@ def url_logo(request, comunidad):
     return request.build_absolute_uri(f'/{settings.MEDIA_URL}logos/{comunidad.logo}'.replace('//', '/'))
 
 
+def url_imagen_publicacion(request, publicacion):
+    if not publicacion.imagen:
+        return ''
+    return request.build_absolute_uri(
+        f'/{settings.MEDIA_URL}actividades/{publicacion.imagen}'.replace('//', '/')
+    )
+
+
 def comunidad_a_dict(request, comunidad, seguidas=None, detallado=False):
     datos = {
         'id': comunidad.id,
@@ -65,7 +73,12 @@ def comunidad_a_dict(request, comunidad, seguidas=None, detallado=False):
             'lugar_reuniones': comunidad.lugar_reuniones,
             'membresia': comunidad.membresia,
             'publicaciones_instagram': [
-                p.url for p in comunidad.publicaciones_instagram.all()
+                {
+                    'url': p.url,
+                    'titulo': p.titulo,
+                    'imagen': url_imagen_publicacion(request, p),
+                }
+                for p in comunidad.publicaciones_instagram.all()
             ],
         })
     return datos

@@ -14,10 +14,11 @@ import '../tema/tema_publico.dart';
 import '../utilidades/abrir_url.dart';
 import '../widgets/esqueletos.dart';
 import '../widgets/etiqueta_actividad.dart';
-import '../widgets/instagram_embed.dart';
 import '../widgets/logo_comunidad.dart';
 import '../widgets/monograma_club.dart';
 import '../widgets/nav_publico.dart';
+import '../widgets/rejilla_responsiva.dart';
+import '../widgets/tarjeta_actividad.dart';
 import '../widgets/vista_async.dart';
 import 'solicitudes_widgets.dart';
 
@@ -574,12 +575,12 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
         const SizedBox(height: 20),
         _tarjetaPublica(
           titulo: 'Actividad reciente',
-          child: Column(
-            children: [
-              for (final url in comunidad.publicacionesInstagram) ...[
-                InstagramEmbed(key: ValueKey(url), url: url),
-                if (url != comunidad.publicacionesInstagram.last) const SizedBox(height: 16),
-              ],
+          child: RejillaResponsiva(
+            anchoMinimo: 160,
+            separacion: 12,
+            hijos: [
+              for (final publicacion in comunidad.publicacionesInstagram)
+                TarjetaActividad(key: ValueKey(publicacion.url), publicacion: publicacion),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'lectura_json.dart';
+import 'publicacion_instagram.dart';
 
 class Comunidad {
   final int id;
@@ -26,9 +27,9 @@ class Comunidad {
   final String lugarReuniones;
   final String membresia;
 
-  /// URLs de publicaciones de Instagram curadas a mano para el detalle
-  /// público (Instagram no deja traer las de una cuenta ajena sin OAuth).
-  final List<String> publicacionesInstagram;
+  /// Publicaciones de Instagram curadas a mano para el detalle público
+  /// (Instagram no deja traer las de una cuenta ajena sin OAuth).
+  final List<PublicacionInstagram> publicacionesInstagram;
 
   /// Estado de la solicitud del usuario conectado en esta comunidad
   /// ('pendiente', 'aprobada', ...). Queda vacío cuando el backend no lo
@@ -82,7 +83,10 @@ class Comunidad {
       reuniones: json.texto('reuniones'),
       lugarReuniones: json.texto('lugar_reuniones'),
       membresia: json.texto('membresia'),
-      publicacionesInstagram: json.listaDeTexto('publicaciones_instagram'),
+      publicacionesInstagram: json
+          .objetos('publicaciones_instagram')
+          .map(PublicacionInstagram.desdeJson)
+          .toList(),
       // El backend puede mandarlo como objeto o como texto suelto; los dos se
       // aceptan, y si no viene queda vacío.
       estadoMiSolicitud: switch (miSolicitud) {

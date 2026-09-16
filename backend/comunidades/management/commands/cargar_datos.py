@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
-from comunidades.models import Categoria, Comunidad, Facultad
+from comunidades.models import Categoria, Comunidad, Facultad, PublicacionInstagram
 
 # Facultades de ESPOL con al menos un club en COMUNIDADES, mas "Multi-facultad"
 # para comunidades institucionales/transversales que no viven en una sola
@@ -99,6 +99,79 @@ LOGO_POR_COMUNIDAD = {
     'ACP': 'acp.png',
     'FANPOL': 'fanpol.png',
     'AUCE': 'accion.png',
+}
+
+# nombre de la comunidad -> ficha informativa (carrera, fundado,
+# lugar_reuniones, membresia). Solo se listan los clubes cuyos gestores ya
+# confirmaron estos datos (ver clubes_info.md en la raiz del repo); el resto
+# queda sin ficha en vez de inventar un valor. El campo "reuniones" (dia/hora)
+# se deja fuera a proposito: se decidio que no aporta valor en el catalogo.
+FICHA_POR_COMUNIDAD = {
+    'CIAP': {
+        'carrera': 'Computación y Ciencias de Datos (membresía libre, no exclusiva)',
+        'lugar_reuniones': 'FIEC 11D',
+        'membresia': 'Abierta / libre',
+    },
+    'TAWS': {
+        'carrera': 'Computación, Logística y Transporte, Administración de Empresas',
+        'fundado': '2007',
+        'lugar_reuniones': 'FIEC 11C',
+        'membresia': 'Ninguna',
+    },
+    'NIoT': {
+        'carrera': 'Carreras de FIEC (libre, no exclusiva)',
+        'lugar_reuniones': 'FIEC 11D',
+        'membresia': 'Ninguna',
+    },
+    'KOKOA': {
+        'carrera': 'Computación, Electrónica y otras carreras de FIEC (libre, no exclusiva)',
+        'lugar_reuniones': 'FIEC 11D',
+        'membresia': 'Ninguna',
+    },
+    'PHYCOM': {
+        'carrera': 'Libre / no exclusiva (Physical Computing)',
+        'membresia': 'Abierta a estudiantes, curiosos, inventores y soñadores; no se requiere experiencia previa',
+    },
+    'IEEE ESPOL Student Branch': {
+        'membresia': (
+            'Abierta — 3 categorías (estudiantil, profesional, asociativo); '
+            'requiere cumplir criterios académicos/profesionales y aceptar el código de ética'
+        ),
+    },
+    # Bio de Instagram y linktr.ee/mecatronica_espol (sep-2026) no dan carrera,
+    # fundacion ni lugar de reuniones, asi que esos campos quedan sin dato en
+    # vez de inventarlos; solo se confirma que existe un formulario de
+    # aspirantes ("BIENVENIDOS ASPIRANTES" en su Linktree).
+    'Club de Mecatrónica ESPOL': {
+        'membresia': 'Abierta — se postula mediante un formulario para aspirantes',
+    },
+    # Bio e historias destacadas ("Requisitos") de Instagram y su sitio
+    # (argumentum.oe.espol.edu.ec), sep-2026. No indican un lugar de
+    # reuniones fijo, asi que ese campo queda sin dato.
+    'Argumentum': {
+        'carrera': 'Libre / no exclusiva (abierto a cualquier estudiante de ESPOL)',
+        'fundado': '2014',
+        'membresia': (
+            'Abierta — solo se requiere ser estudiante de ESPOL e inscribirse '
+            'al proceso de ingreso; no se necesitan conocimientos previos'
+        ),
+    },
+    # Bio e historias destacadas de Instagram (sep-2026): no dan fecha de
+    # fundacion, lugar de reuniones ni requisitos de membresia, asi que esos
+    # campos quedan sin dato en vez de inventarlos.
+    'D.A.T.A Club': {
+        'carrera': 'Estadística',
+    },
+    # Bio (ubicacion) y linktr.ee/club_acp_espol (sep-2026): sin fecha de
+    # fundacion publica, asi que ese campo queda sin dato.
+    'ACP': {
+        'carrera': 'Libre / no exclusiva (arte, música, danza, fotografía, audiovisual)',
+        'lugar_reuniones': 'Biblioteca Central de ESPOL',
+        'membresia': (
+            'Abierta — se postula por área (Diseño Gráfico, Producción '
+            'Audiovisual, Fotografía) o de forma general ("¡Únete al Club!")'
+        ),
+    },
 }
 
 # (nombre, categoria, descripcion, contacto, activa, instagram, nivel_actividad)
@@ -236,8 +309,9 @@ COMUNIDADES = [
      '', True, '', 'sin_verificar'),
     ('D.A.T.A Club', 'Tecnología',
      'Data Analysis Technology Algorithms: club de la FCNM enfocado en '
-     'estadística aplicada y análisis de datos interdisciplinario.',
-     '', True, '', 'sin_verificar'),
+     'estadística aplicada y análisis de datos; organiza mega ayudantías y '
+     'promueve la carrera de Estadística en ferias y eventos de ESPOL.',
+     '', True, 'https://www.instagram.com/dataclubec/', 'activo'),
     ('MatEs', 'Ciencias',
      'Club de la FCNM dedicado a la divulgación y competencias de '
      'matemáticas.',
@@ -296,12 +370,16 @@ COMUNIDADES = [
      'Club de FADCOM enfocado en diseño de producto.',
      '', True, '', 'sin_verificar'),
     ('Argumentum', 'Cultura',
-     'Club de debate y oratoria de ESPOL, activo desde 2014.',
-     '', True, '', 'sin_verificar'),
+     'Club de debate y oratoria de la ESPOL, activo desde el 1 de agosto de '
+     '2014; organiza torneos internos, ligas, conversatorios académicos y '
+     'recibe aspirantes sin requerir experiencia previa.',
+     '', True, 'https://www.instagram.com/argumentumespol/', 'activo'),
     ('ACP', 'Cultura',
-     'Acción Cultural Politécnica: club dedicado a la música y las artes '
-     'dentro de la comunidad politécnica.',
-     '', True, '', 'sin_verificar'),
+     'Acción Cultural Politécnica: espacio artístico y cultural de la ESPOL '
+     'con áreas de música, baile, fotografía, diseño gráfico y producción '
+     'audiovisual; formación, producción y difusión del arte dentro de la '
+     'comunidad politécnica.',
+     '', True, 'https://www.instagram.com/acpclub.espol/', 'activo'),
     ('FANPOL', 'Cultura',
      'Familia Anime Politécnica: comunidad dedicada a la cultura asiática '
      '(anime, manga, gastronomía y tradiciones de Japón, Corea y China).',
@@ -333,6 +411,230 @@ COMUNIDADES = [
      '', False, 'https://www.instagram.com/593guidesclub/', 'inactivo'),
 ]
 
+# nombre de la comunidad -> sus 3 publicaciones mas recientes en Instagram
+# (visitadas manualmente en sep-2026; ver PublicacionInstagram). Solo se
+# listan los clubes con cuenta de Instagram verificada en COMUNIDADES; el
+# resto queda sin carrusel de actividad reciente en vez de inventar posts.
+# Algunas urls pertenecen a otra cuenta (colaboracion/publicacion compartida)
+# porque ese post aparece igual en el feed propio del club.
+#
+# 'imagen' es un archivo en backend/media/actividades/ (captura propia del
+# post, recortada a mano). Se deja en '' a proposito quando el post central
+# es el "spotlight" de una persona (cara + nombre completo como protagonista,
+# ej. un anuncio de speaker): no se reutiliza esa foto para no re-alojar el
+# retrato de un tercero que no dio su consentimiento para esta app. En esos
+# casos el frontend cae al embed en vivo de Instagram en vez de la imagen.
+PUBLICACIONES_POR_COMUNIDAD = {
+    'CIAP': [
+        {'url': 'https://www.instagram.com/ciap_espol/p/DdDIW6eICVC/',
+         'titulo': 'Participación en la Ruta de la Innovación 2026', 'imagen': 'DdDIW6eICVC.jpg'},
+        {'url': 'https://www.instagram.com/ciap_espol/p/DdAiFXLoDc2/',
+         'titulo': 'Delegación en el AWS Community Day Ecuador 2026', 'imagen': 'DdAiFXLoDc2.jpg'},
+        {'url': 'https://www.instagram.com/ciap_espol/p/Dc6JajjoGQd/',
+         'titulo': 'Speaker oficial en el AWS Community Day Ecuador 2026', 'imagen': ''},
+    ],
+    'TAWS': [
+        {'url': 'https://www.instagram.com/taws_espol/p/DchH2OdFvom/',
+         'titulo': 'Mega Ayudantía de Fundamentos de Programación', 'imagen': ''},
+        {'url': 'https://www.instagram.com/taws_espol/p/DceZ-25FnDQ/',
+         'titulo': 'Taller de Team Building con i3lab', 'imagen': 'DceZ-25FnDQ.jpg'},
+        {'url': 'https://www.instagram.com/taws_espol/p/DccK0ivFpy-/',
+         'titulo': 'Investigación aceptada en el ICEDEG 2026 (Lisboa)', 'imagen': ''},
+    ],
+    'NIoT': [
+        {'url': 'https://www.instagram.com/club.niot.espol/reel/DdMx1dWv1e9/',
+         'titulo': 'Recap de actividades del club', 'imagen': 'DdMx1dWv1e9.jpg'},
+        {'url': 'https://www.instagram.com/club.niot.espol/p/DcSpLdOFarf/',
+         'titulo': 'Mega Ayudantías para el 2do parcial', 'imagen': 'DcSpLdOFarf.jpg'},
+        {'url': 'https://www.instagram.com/club.niot.espol/p/DcRj0dbH62h/',
+         'titulo': 'Presentes en Clubes: Ready. Set. Join! 2026', 'imagen': 'DcRj0dbH62h.jpg'},
+    ],
+    'KOKOA': [
+        {'url': 'https://www.instagram.com/kokoa_espol/p/Dc6nBGmz9Ow/',
+         'titulo': 'Feria de Proyectos KOKOA', 'imagen': 'Dc6nBGmz9Ow.jpg'},
+        {'url': 'https://www.instagram.com/kokoa_espol/p/DcU2dCEkXtX/',
+         'titulo': 'Mega Ayudantía de Fundamentos de Programación', 'imagen': ''},
+        {'url': 'https://www.instagram.com/kokoa_espol/p/DcGszzbEfo3/',
+         'titulo': 'Lightning Talk: robot R.O.B.E.R.T.', 'imagen': ''},
+    ],
+    'PHYCOM': [
+        {'url': 'https://www.instagram.com/phycom_espol/p/DcH_HWolm-i/',
+         'titulo': 'Miembros como speakers en FLISoL', 'imagen': 'DcH_HWolm-i.jpg'},
+        {'url': 'https://www.instagram.com/phycom_espol/p/DcHyWftmqEg/',
+         'titulo': 'PHYCOM presente en FLISoL', 'imagen': 'DcHyWftmqEg.jpg'},
+        {'url': 'https://www.instagram.com/phycom_espol/p/DbzIJ1Tmgq_/',
+         'titulo': 'PHYCOM en Build with AI (GDG Guayaquil)', 'imagen': 'DbzIJ1Tmgq_.jpg'},
+    ],
+    'ROBOTA': [
+        {'url': 'https://www.instagram.com/ciace_espol/p/DdMjQrXEW0V/',
+         'titulo': 'Construcción del avión para el concurso de aviónica', 'imagen': 'DdMjQrXEW0V.jpg'},
+        {'url': 'https://www.instagram.com/retodelpacifico_/p/DdFmAyWxczV/',
+         'titulo': 'Reto del Pacífico – Robot Games, 3ra edición', 'imagen': 'DdFmAyWxczV.jpg'},
+        {'url': 'https://www.instagram.com/rgzlecuador/p/Dc_qqtbpxlT/',
+         'titulo': 'Campeones en Robot Games Zero Latitud', 'imagen': 'Dc_qqtbpxlT.jpg'},
+    ],
+    'IEEE ESPOL Student Branch': [
+        {'url': 'https://www.instagram.com/ieee.espol.ias/p/DdRjPhklLHK/',
+         'titulo': 'IEEE Rising Stars 2026 en Quito', 'imagen': 'DdRjPhklLHK.jpg'},
+        {'url': 'https://www.instagram.com/ieee.espol/reel/DdRMadljJ69/',
+         'titulo': 'Recap del IEEE Rising Stars LAC', 'imagen': 'DdRMadljJ69.jpg'},
+        {'url': 'https://www.instagram.com/ieee.espol/p/DdOzKaADk9p/',
+         'titulo': '24.º aniversario de IEEE ESPOL', 'imagen': 'DdOzKaADk9p.jpg'},
+    ],
+    'GISSC': [
+        {'url': 'https://www.instagram.com/gissc_espol/p/DcATdx-DNdR/',
+         'titulo': 'Participación en el Space Hack for Sustainability', 'imagen': 'DcATdx-DNdR.jpg'},
+        {'url': 'https://www.instagram.com/gissc_espol/p/DcAQSFWjBBY/',
+         'titulo': 'Pasantía de investigación en la ÉTS, Canadá', 'imagen': ''},
+        {'url': 'https://www.instagram.com/gissc_espol/p/DcAOaekjBaz/',
+         'titulo': 'Charla: SIG y teledetección en la Amazonía', 'imagen': 'DcAOaekjBaz.jpg'},
+    ],
+    'CIMAT': [
+        {'url': 'https://www.instagram.com/espolfimcp/p/DcRCGMqESpp/',
+         'titulo': 'Charla Materiales Conecta: control de corrosión', 'imagen': 'DcRCGMqESpp.jpg'},
+        {'url': 'https://www.instagram.com/espolfimcp/reel/DcPCcqoSZEE/',
+         'titulo': 'Materiales Conecta: preparación de superficies', 'imagen': 'DcPCcqoSZEE.jpg'},
+        {'url': 'https://www.instagram.com/espolfimcp/p/DcL0hkAR5O5/',
+         'titulo': 'Nueva edición de Materiales Conecta', 'imagen': 'DcL0hkAR5O5.jpg'},
+    ],
+    'IFT ESPOL': [
+        {'url': 'https://www.instagram.com/capitan_geminis/p/DcjuoGhFp3W/',
+         'titulo': 'Taller de dibujo "Garabatos" junto a IFT', 'imagen': 'DcjuoGhFp3W.jpg'},
+        {'url': 'https://www.instagram.com/capitan_geminis/p/DceqBNFggvh/',
+         'titulo': 'Taller Garabatos: monstruos y manchas', 'imagen': 'DceqBNFggvh.jpg'},
+        {'url': 'https://www.instagram.com/ift_espol/p/Db_-bSVtWjn/',
+         'titulo': 'Cine IFT: tarde de película', 'imagen': 'Db_-bSVtWjn.jpg'},
+    ],
+    'Politécnicas en STEAM': [
+        {'url': 'https://www.instagram.com/politecnicas.steam/p/DRlZbFBEfMb/',
+         'titulo': 'Conversatorio: Mujeres STEAM frente a la Violencia', 'imagen': ''},
+        {'url': 'https://www.instagram.com/argumentumespol/p/DRdnZXSDEx_/',
+         'titulo': 'Conversatorio por el 25N junto a Argumentum', 'imagen': ''},
+        {'url': 'https://www.instagram.com/steam.space.girls/p/DDbSqjYsHG1/',
+         'titulo': 'Conversatorio virtual: Perspectivas STEAM', 'imagen': 'DDbSqjYsHG1.jpg'},
+    ],
+    'IISE ESPOL': [
+        {'url': 'https://www.instagram.com/espolfimcp/p/DdUJmGvFDA2/',
+         'titulo': 'IISE Day: conectando la academia con la industria', 'imagen': 'DdUJmGvFDA2.jpg'},
+        {'url': 'https://www.instagram.com/iise_espol/p/DdDQ4sNxngm/',
+         'titulo': 'Celebración del ISE Day 2026', 'imagen': 'DdDQ4sNxngm.jpg'},
+        {'url': 'https://www.instagram.com/iise_espol/p/DcmxBenxyTY/',
+         'titulo': 'Visita técnica a CEDAL', 'imagen': 'DcmxBenxyTY.jpg'},
+    ],
+    'SPE ESPOL': [
+        {'url': 'https://www.instagram.com/espolspe/p/DcLwAHwuL66/',
+         'titulo': 'Visita técnica al Oriente ecuatoriano', 'imagen': 'DcLwAHwuL66.jpg'},
+        {'url': 'https://www.instagram.com/espolspe/p/DblwKvXvqYb/',
+         'titulo': 'Reclutamiento para PetroTest 2026', 'imagen': 'DblwKvXvqYb.jpg'},
+        {'url': 'https://www.instagram.com/espolspe/p/Da0efV0OZ1Y/',
+         'titulo': 'Webinar de bombas industriales', 'imagen': ''},
+    ],
+    'SME ESPOL': [
+        {'url': 'https://www.instagram.com/smeespol/p/DdUsZlqRKkl/',
+         'titulo': 'ECUAMINING 2026: nuevo auspiciante oficial', 'imagen': 'DdUsZlqRKkl.jpg'},
+        {'url': 'https://www.instagram.com/fictespol/reel/Dc_t618tdWe/',
+         'titulo': 'Día del Trabajador Minero Ecuatoriano', 'imagen': 'Dc_t618tdWe.jpg'},
+        {'url': 'https://www.instagram.com/smeespol/p/DcybV7pEZ70/',
+         'titulo': 'ECUAMINING 2026, 8.ª edición', 'imagen': 'DcybV7pEZ70.jpg'},
+    ],
+    'CADIEC': [
+        {'url': 'https://www.instagram.com/cadiecespol/reel/DbbMlhkR6qP/',
+         'titulo': 'Mercadito de las Fiestas Julianas', 'imagen': ''},
+        {'url': 'https://www.instagram.com/cadiecespol/reel/DakrwX7xk_h/',
+         'titulo': 'Artículo sobre remesas y economía ecuatoriana', 'imagen': ''},
+        {'url': 'https://www.instagram.com/cadiecespol/p/DaiOk4tjquE/',
+         'titulo': 'Inducción de aspirantes a CADIEC', 'imagen': 'DaiOk4tjquE.jpg'},
+    ],
+    'CLIP': [
+        {'url': 'https://www.instagram.com/clip_espol/p/DccWMOGDLAB/',
+         'titulo': 'Presentes en la Feria de Ciencias (FCNM)', 'imagen': 'DccWMOGDLAB.jpg'},
+        {'url': 'https://www.instagram.com/clip_espol/p/DcCvXRuDJ9I/',
+         'titulo': 'Charla-taller de Algoritmos de Optimización para IA', 'imagen': 'DcCvXRuDJ9I.jpg'},
+        {'url': 'https://www.instagram.com/ieeecis.espol/p/DbDrhy5uo6C/',
+         'titulo': 'Introducción a los Algoritmos de Optimización para IA', 'imagen': ''},
+    ],
+    'BREIK': [
+        {'url': 'https://www.instagram.com/breikgye/p/DdC2ju5mk6V/',
+         'titulo': 'PyWeekend: reto de programación', 'imagen': 'DdC2ju5mk6V.jpg'},
+        {'url': 'https://www.instagram.com/breikgye/p/DcP2RfYAIJp/',
+         'titulo': 'Día Mundial de la Fotografía', 'imagen': 'DcP2RfYAIJp.jpg'},
+        {'url': 'https://www.instagram.com/breikgye/reel/DcOpPM3Rk2A/',
+         'titulo': 'Coworking de clubes en FADCOM', 'imagen': 'DcOpPM3Rk2A.jpg'},
+    ],
+    'Club de Arqueología': [
+        {'url': 'https://www.instagram.com/clubarqueologia.espol/p/DczO0RzGDqi/',
+         'titulo': 'Finalistas en el 5min Pitch de la FCSH', 'imagen': 'DczO0RzGDqi.jpg'},
+        {'url': 'https://www.instagram.com/clubarqueologia.espol/p/Da1ng87Den7/',
+         'titulo': 'Conferencia: la cerámica bajo la mirada de un geólogo', 'imagen': 'Da1ng87Den7.jpg'},
+        {'url': 'https://www.instagram.com/clubarqueologia.espol/p/DanfgYCxS2k/',
+         'titulo': 'Charla sobre cerámica y geología', 'imagen': ''},
+    ],
+    'Club de Mecatrónica ESPOL': [
+        {'url': 'https://www.instagram.com/codes_espol/p/Dcjw29-mmz3/',
+         'titulo': 'Taller "Hackeando el Mundo Físico" (parte 2)', 'imagen': 'Dcjw29-mmz3.jpg'},
+        {'url': 'https://www.instagram.com/codes_espol/p/Db8QFRwOdJx/',
+         'titulo': 'Taller "Hackeando el Mundo Físico" con Club CODES', 'imagen': 'Db8QFRwOdJx.jpg'},
+        {'url': 'https://www.instagram.com/club_mecatronica_espol/p/Db4Se7eESOf/',
+         'titulo': 'Primer taller hands-on de impresión 3D', 'imagen': 'Db4Se7eESOf.jpg'},
+    ],
+    'ACP': [
+        {'url': 'https://www.instagram.com/acpclub.espol/p/DdSr2UMDB9R/',
+         'titulo': 'Project Dance Hall: ritmos caribeños', 'imagen': 'DdSr2UMDB9R.jpg'},
+        {'url': 'https://www.instagram.com/acpclub.espol/p/DcyvGe5Fp87/',
+         'titulo': 'Convocatoria: área de Producción Audiovisual', 'imagen': 'DcyvGe5Fp87.jpg'},
+        {'url': 'https://www.instagram.com/acpclub.espol/p/DcyunonljNC/',
+         'titulo': 'Convocatoria: área de Diseñadores Gráficos', 'imagen': 'DcyunonljNC.jpg'},
+    ],
+    'D.A.T.A Club': [
+        {'url': 'https://www.instagram.com/dataclubec/p/Dc4aHeLBNFC/',
+         'titulo': 'Mega Ayudantía de Fundamentos de Programación', 'imagen': ''},
+        {'url': 'https://www.instagram.com/dataclubec/p/DcMaxslBmec/',
+         'titulo': 'Mega Ayudantía de Cálculo de una Variable', 'imagen': ''},
+        {'url': 'https://www.instagram.com/dataclubec/p/DcKn-nBDVI3/',
+         'titulo': 'Segundo lugar en la Feria de Ciencias con el proyecto KAIRO', 'imagen': ''},
+    ],
+    'Argumentum': [
+        {'url': 'https://www.instagram.com/argumentumespol/p/DTagph5EXIK/',
+         'titulo': 'Sesión de fotos profesional para CV', 'imagen': 'DTagph5EXIK.jpg'},
+        {'url': 'https://www.instagram.com/argumentumespol/p/DTJjbksEQKf/',
+         'titulo': 'Recepción de nuevos miembros: Torneo de Aspirantes', 'imagen': 'DTJjbksEQKf.jpg'},
+        {'url': 'https://www.instagram.com/argumentumespol/reel/DSaGztTEUVu/',
+         'titulo': 'Rifa Cupido de Argumentum', 'imagen': ''},
+    ],
+    'Yaku Club de Buceo Investigativo': [
+        {'url': 'https://www.instagram.com/cds_espol/p/C0nZdTEM-1v/',
+         'titulo': 'Minga de limpieza en playa Engabao', 'imagen': 'C0nZdTEM-1v.jpg'},
+        {'url': 'https://www.instagram.com/yakubuceo_espol/p/Cuk0snTMYPK/',
+         'titulo': 'Calendario de fechas ambientales', 'imagen': 'Cuk0snTMYPK.jpg'},
+        {'url': 'https://www.instagram.com/espol1/reel/CtO5Q2Cub5z/',
+         'titulo': 'La importancia de cuidar los océanos', 'imagen': 'CtO5Q2Cub5z.jpg'},
+    ],
+    'Club Emprende': [
+        {'url': 'https://www.instagram.com/clubemprende.espol/p/DdNyphulpIr/',
+         'titulo': 'Día 2 del Startup Weekend', 'imagen': 'DdNyphulpIr.jpg'},
+        {'url': 'https://www.instagram.com/clubemprende.espol/p/DdLTgUCFu-C/',
+         'titulo': 'Día 1 del Startup Weekend', 'imagen': 'DdLTgUCFu-C.jpg'},
+        {'url': 'https://www.instagram.com/clubemprende.espol/p/DcPyPIyDSeZ/',
+         'titulo': 'Presentes en el Ready Set Join', 'imagen': 'DcPyPIyDSeZ.jpg'},
+    ],
+    'Suitcase Club': [
+        {'url': 'https://www.instagram.com/suitcaseclub/p/DYCs1Tqjl4I/',
+         'titulo': 'Novatada PAO I 2026', 'imagen': 'DYCs1Tqjl4I.jpg'},
+        {'url': 'https://www.instagram.com/suitcaseclub/p/DRn0asMDlk4/',
+         'titulo': 'Taller de coctelería Mix&Chill', 'imagen': 'DRn0asMDlk4.jpg'},
+        {'url': 'https://www.instagram.com/suitcaseclub/p/DQfrtGJDhND/',
+         'titulo': 'Integración del club con espíritu Halloween', 'imagen': 'DQfrtGJDhND.jpg'},
+    ],
+    'BIOSOC ESPOL': [
+        {'url': 'https://www.instagram.com/biosocespol/p/DBgtyg4xQKt/',
+         'titulo': 'Charla sobre organizaciones académicas de la facultad', 'imagen': 'DBgtyg4xQKt.jpg'},
+        {'url': 'https://www.instagram.com/biosocespol/p/DAwkAqjJls-/',
+         'titulo': 'Concurso "Biología en Arte", I edición', 'imagen': 'DAwkAqjJls-.jpg'},
+        {'url': 'https://www.instagram.com/biosocespol/p/DAbH6mYRTKc/',
+         'titulo': 'Recap de actividades del semestre', 'imagen': 'DAbH6mYRTKc.jpg'},
+    ],
+}
+
 ESTUDIANTES = ['estudiante1', 'estudiante2']
 
 
@@ -351,6 +653,11 @@ class Command(BaseCommand):
             cat, _ = Categoria.objects.get_or_create(nombre=categoria)
             facultad = facultades.get(FACULTAD_POR_COMUNIDAD.get(nombre, ''))
             logo = LOGO_POR_COMUNIDAD.get(nombre, '')
+            ficha = FICHA_POR_COMUNIDAD.get(nombre, {})
+            carrera = ficha.get('carrera', '')
+            fundado = ficha.get('fundado', '')
+            lugar_reuniones = ficha.get('lugar_reuniones', '')
+            membresia = ficha.get('membresia', '')
             comunidad, creada = Comunidad.objects.get_or_create(
                 nombre=nombre,
                 defaults={
@@ -362,6 +669,10 @@ class Command(BaseCommand):
                     'activa': activa,
                     'instagram': instagram,
                     'nivel_actividad': nivel_actividad,
+                    'carrera': carrera,
+                    'fundado': fundado,
+                    'lugar_reuniones': lugar_reuniones,
+                    'membresia': membresia,
                 },
             )
             if not creada:
@@ -376,16 +687,37 @@ class Command(BaseCommand):
                 comunidad.activa = activa
                 comunidad.instagram = instagram
                 comunidad.nivel_actividad = nivel_actividad
+                comunidad.carrera = carrera
+                comunidad.fundado = fundado
+                comunidad.lugar_reuniones = lugar_reuniones
+                comunidad.membresia = membresia
                 comunidad.save()
+
+            publicaciones = PUBLICACIONES_POR_COMUNIDAD.get(nombre, [])
+            if publicaciones and not comunidad.publicaciones_instagram.exists():
+                # solo se cargan si el club no tiene publicaciones propias
+                # (p.ej. agregadas a mano desde el admin) para no duplicar.
+                PublicacionInstagram.objects.bulk_create([
+                    PublicacionInstagram(
+                        comunidad=comunidad,
+                        url=publicacion['url'],
+                        titulo=publicacion['titulo'],
+                        imagen=publicacion['imagen'],
+                        orden=orden,
+                    )
+                    for orden, publicacion in enumerate(publicaciones)
+                ])
 
         for username in ESTUDIANTES:
             if not User.objects.filter(username=username).exists():
                 User.objects.create_user(username=username, password='espol2026')
 
         con_logo = Comunidad.objects.exclude(logo='').count()
+        con_actividad = Comunidad.objects.filter(publicaciones_instagram__isnull=False).distinct().count()
         self.stdout.write(self.style.SUCCESS(
             f'Listo: {Categoria.objects.count()} categorias, '
             f'{Facultad.objects.count()} facultades, '
-            f'{Comunidad.objects.count()} comunidades ({con_logo} con logo), '
+            f'{Comunidad.objects.count()} comunidades ({con_logo} con logo, '
+            f'{con_actividad} con actividad reciente), '
             f'{User.objects.count()} usuarios'
         ))
