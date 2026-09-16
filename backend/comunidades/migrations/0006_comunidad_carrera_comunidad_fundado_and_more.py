@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("comunidades", "0004_facultad_comunidad_facultad"),
+        ("comunidades", "0005_facultad_comunidad_facultad"),
     ]
 
     operations = [

@@ -8,6 +8,7 @@ class Comunidad {
   final String facultad;
   final String facultadDescripcion;
   final String contacto;
+  final String logo;
   final String instagram;
 
   /// 'activo', 'poco_activo', 'inactivo' o 'sin_verificar'. Ver
@@ -40,6 +41,7 @@ class Comunidad {
     required this.descripcion,
     required this.categoria,
     required this.contacto,
+    this.logo = '',
     required this.seguidores,
     required this.siguiendo,
     this.facultad = '',
@@ -70,6 +72,7 @@ class Comunidad {
       facultad: json.texto('facultad'),
       facultadDescripcion: json.texto('facultad_descripcion'),
       contacto: json.texto('contacto'),
+      logo: json.texto('logo'),
       instagram: json.texto('instagram'),
       nivelActividad: json.texto('nivel_actividad', porDefecto: 'sin_verificar'),
       seguidores: json.entero('seguidores'),

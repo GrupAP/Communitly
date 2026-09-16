@@ -15,10 +15,10 @@ import '../utilidades/abrir_url.dart';
 import '../widgets/esqueletos.dart';
 import '../widgets/etiqueta_actividad.dart';
 import '../widgets/instagram_embed.dart';
+import '../widgets/logo_comunidad.dart';
 import '../widgets/monograma_club.dart';
 import '../widgets/nav_publico.dart';
 import '../widgets/vista_async.dart';
-import 'eventos.dart';
 import 'solicitudes_widgets.dart';
 
 class PantallaDetalle extends StatefulWidget {
@@ -125,6 +125,12 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  LogoComunidad(
+                    logo: comunidad.logo,
+                    nombre: comunidad.nombre,
+                    tamano: 72,
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     comunidad.nombre,
                     style: context.textos.headlineMedium
@@ -167,17 +173,14 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _accionesSolicitud(comunidad),
-            // RF-03: eventos de esta comunidad.
+            // RF-03: eventos de esta comunidad. El nombre viaja como `extra`
+            // porque no está en la URL; con un enlace directo la pantalla se
+            // titula solo "Eventos".
             OutlinedButton.icon(
-              onPressed: () => unawaited(Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => PantallaEventos(
-                    comunidadId: comunidad.id,
-                    comunidadNombre: comunidad.nombre,
-                  ),
-                ),
-              )),
+              onPressed: () => context.push<void>(
+                Rutas.eventosDeComunidad(comunidad.id),
+                extra: comunidad.nombre,
+              ),
               icon: const Icon(Icons.event),
               label: const Text('Ver eventos de esta comunidad'),
             ),
@@ -413,21 +416,34 @@ class _PantallaDetalleState extends State<PantallaDetalle> {
         Positioned(
           left: 24,
           bottom: -28,
-          child: Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white, width: 4),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              inicialesClub(comunidad.nombre),
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 26),
-            ),
-          ),
+          child: comunidad.logo.isNotEmpty
+              ? Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: LogoComunidad(
+                    logo: comunidad.logo,
+                    nombre: comunidad.nombre,
+                    tamano: 84,
+                  ),
+                )
+              : Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    inicialesClub(comunidad.nombre),
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold, fontSize: 26),
+                  ),
+                ),
         ),
       ],
     );

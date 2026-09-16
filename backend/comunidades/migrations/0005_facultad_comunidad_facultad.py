@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("comunidades", "0003_comunidad_instagram_comunidad_nivel_actividad"),
+        ("comunidades", "0004_comunidad_instagram_comunidad_nivel_actividad"),
     ]
 
     operations = [

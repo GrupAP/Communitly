@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
@@ -31,7 +32,13 @@ def obtener_estudiante(request):
         return None
 
 
-def comunidad_a_dict(comunidad, seguidas=None, detallado=False):
+def url_logo(request, comunidad):
+    if not comunidad.logo:
+        return ''
+    return request.build_absolute_uri(f'/{settings.MEDIA_URL}logos/{comunidad.logo}'.replace('//', '/'))
+
+
+def comunidad_a_dict(request, comunidad, seguidas=None, detallado=False):
     datos = {
         'id': comunidad.id,
         'nombre': comunidad.nombre,
@@ -40,6 +47,7 @@ def comunidad_a_dict(comunidad, seguidas=None, detallado=False):
         'facultad': comunidad.facultad.nombre if comunidad.facultad else '',
         'facultad_descripcion': comunidad.facultad.descripcion if comunidad.facultad else '',
         'contacto': comunidad.contacto,
+        'logo': url_logo(request, comunidad),
         'instagram': comunidad.instagram,
         'nivel_actividad': comunidad.nivel_actividad,
         'seguidores': comunidad.total_seguidores(),
@@ -96,7 +104,7 @@ def listar_comunidades(request):
         comunidades = comunidades.filter(nivel_actividad__iexact=nivel_actividad)
 
     seguidas = comunidades_seguidas(request)
-    resultados = [comunidad_a_dict(c, seguidas) for c in comunidades]
+    resultados = [comunidad_a_dict(request, c, seguidas) for c in comunidades]
     return responder({'total': len(resultados), 'comunidades': resultados})
 
 
@@ -106,7 +114,9 @@ def detalle_comunidad(request, comunidad_id):
     if comunidad is None:
         return responder({'error': 'La comunidad no existe o no está activa'}, status=404)
 
-    return responder(comunidad_a_dict(comunidad, comunidades_seguidas(request), detallado=True))
+    return responder(
+        comunidad_a_dict(request, comunidad, comunidades_seguidas(request), detallado=True)
+    )
 
 
 @csrf_exempt

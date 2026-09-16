@@ -68,6 +68,39 @@ FACULTAD_POR_COMUNIDAD = {
     '593 Guides Club': 'FCSH',
 }
 
+# nombre de la comunidad -> archivo en backend/media/logos/ (logos reales
+# subidos por el equipo; los clubes sin logo propio quedan sin imagen en vez
+# de usar un placeholder generico).
+LOGO_POR_COMUNIDAD = {
+    'CIAP': 'ciap.png',
+    'TAWS': 'taws.png',
+    'NIoT': 'niot.png',
+    'KOKOA': 'kokoa.png',
+    'PHYCOM': 'phycom.png',
+    'ROBOTA': 'robota.jpg',
+    'IEEE ESPOL Student Branch': 'ieee.png',
+    'GISSC': 'gissc.png',
+    'CIMAT': 'cimat.jpg',
+    'IFT ESPOL': 'ift.png',
+    'IISE ESPOL': 'iise.png',
+    'SPE ESPOL': 'spe.png',
+    'SME ESPOL': 'sme.png',
+    'CADIEC': 'cadiec.png',
+    'CLIP': 'clip.png',
+    'BREIK': 'breik.webp',
+    'Club de Arqueología': 'arqueologia.jpg',
+    'Club de Mecatrónica ESPOL': 'mecatronica.png',
+    'Célula Estudiantil Microsoft ESPOL': 'celula.png',
+    'AAPG ESPOL': 'aapg.jpg',
+    'ASME ESPOL': 'asme.png',
+    'ASCE ESPOL': 'asce.png',
+    'Tweening': 'tweening.png',
+    'Argumentum': 'argumentum.png',
+    'ACP': 'acp.png',
+    'FANPOL': 'fanpol.png',
+    'AUCE': 'accion.png',
+}
+
 # (nombre, categoria, descripcion, contacto, activa, instagram, nivel_actividad)
 #
 # Verificado contra Instagram (fecha de referencia: sep-2026) para saber que
@@ -169,8 +202,8 @@ COMUNIDADES = [
      'creación de contenido, cobertura de eventos y producciones '
      'audiovisuales; ofrece también talleres y servicios de producción.',
      'breik@espol.edu.ec', True, 'https://www.instagram.com/breikgye/', 'activo'),
-    # Estaba marcado como inactivo, pero su Instagram muestra publicaciones
-    # regulares durante 2026 (charlas, talleres, ferias) -> se reactiva.
+    # Su Instagram muestra publicaciones regulares durante 2026 (charlas,
+    # talleres, ferias): esta activo, pese a lo que sugeria un dato anterior.
     ('Club de Arqueología', 'Cultura',
      'Comunidad estudiantil dedicada a la difusión del patrimonio '
      'arqueológico mediante charlas, talleres, ferias y actividades de '
@@ -317,6 +350,7 @@ class Command(BaseCommand):
         for nombre, categoria, descripcion, contacto, activa, instagram, nivel_actividad in COMUNIDADES:
             cat, _ = Categoria.objects.get_or_create(nombre=categoria)
             facultad = facultades.get(FACULTAD_POR_COMUNIDAD.get(nombre, ''))
+            logo = LOGO_POR_COMUNIDAD.get(nombre, '')
             comunidad, creada = Comunidad.objects.get_or_create(
                 nombre=nombre,
                 defaults={
@@ -324,6 +358,7 @@ class Command(BaseCommand):
                     'categoria': cat,
                     'facultad': facultad,
                     'contacto': contacto,
+                    'logo': logo,
                     'activa': activa,
                     'instagram': instagram,
                     'nivel_actividad': nivel_actividad,
@@ -337,6 +372,7 @@ class Command(BaseCommand):
                 comunidad.categoria = cat
                 comunidad.facultad = facultad
                 comunidad.contacto = contacto
+                comunidad.logo = logo
                 comunidad.activa = activa
                 comunidad.instagram = instagram
                 comunidad.nivel_actividad = nivel_actividad
@@ -346,9 +382,10 @@ class Command(BaseCommand):
             if not User.objects.filter(username=username).exists():
                 User.objects.create_user(username=username, password='espol2026')
 
+        con_logo = Comunidad.objects.exclude(logo='').count()
         self.stdout.write(self.style.SUCCESS(
             f'Listo: {Categoria.objects.count()} categorias, '
             f'{Facultad.objects.count()} facultades, '
-            f'{Comunidad.objects.count()} comunidades, '
+            f'{Comunidad.objects.count()} comunidades ({con_logo} con logo), '
             f'{User.objects.count()} usuarios'
         ))

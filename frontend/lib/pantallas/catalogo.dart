@@ -12,13 +12,14 @@ import '../servicios/preferencias.dart';
 import '../servicios/sesion.dart';
 import '../tema/tema.dart';
 import '../tema/tema_publico.dart';
+import '../widgets/encabezado.dart';
 import '../widgets/esqueletos.dart';
 import '../widgets/etiqueta_actividad.dart';
+import '../widgets/logo_comunidad.dart';
 import '../widgets/monograma_club.dart';
 import '../widgets/nav_publico.dart';
 import '../widgets/rejilla_responsiva.dart';
 import '../widgets/vista_async.dart';
-import 'eventos.dart';
 
 /// RF-01 a RF-03: catálogo de comunidades con búsqueda y filtro por categoría.
 class PantallaCatalogo extends StatefulWidget {
@@ -168,7 +169,17 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ESPOL Communities'),
-        actions: _acciones(context, usuario),
+        actions: [
+          // RF-03: entrada al modulo de eventos, la unica accion que queda
+          // visible. El resto va al menu para que el titulo no se corte en un
+          // telefono de 360 px.
+          IconButton(
+            onPressed: () => context.push(Rutas.eventos),
+            icon: const Icon(Icons.event),
+            tooltip: 'Eventos',
+          ),
+          _menu(usuario),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _cargar,
@@ -181,17 +192,16 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Descubre tu próxima comunidad',
-                    style: context.textos.headlineMedium,
+                  Encabezado(
+                    icono: Icons.groups_2_outlined,
+                    titulo: 'Descubre tu próxima comunidad',
+                    subtitulo: usuario == null
+                        ? ''
+                        : usuario.esGestor
+                        ? 'Conectado como ${usuario.usuario} · gestor'
+                        : 'Conectado como ${usuario.usuario}',
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _subtitulo(usuario),
-                    style: context.textos.bodyMedium
-                        ?.copyWith(color: context.textoSecundario),
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   _campoBusqueda(),
                   const SizedBox(height: 16),
                   _filtrosCategoria(),
@@ -210,48 +220,53 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
     );
   }
 
-  String _subtitulo(UsuarioSesion? usuario) {
-    if (usuario == null) return '';
-    return usuario.esGestor
-        ? 'Conectado como ${usuario.usuario} · gestor'
-        : 'Conectado como ${usuario.usuario}';
-  }
+  Widget _menu(UsuarioSesion? usuario) {
+    final esOscuro = Theme.of(context).brightness == Brightness.dark;
 
-  List<Widget> _acciones(BuildContext context, UsuarioSesion? usuario) {
-    return [
-      // RF-03: entrada al modulo de eventos. Sin colores fijos, para que
-      // siga el tema claro u oscuro como el resto de la barra.
-      TextButton.icon(
-        onPressed: () => unawaited(Navigator.push(
-          context,
-          MaterialPageRoute<void>(builder: (_) => const PantallaEventos()),
-        )),
-        icon: const Icon(Icons.event),
-        label: const Text('Eventos'),
-      ),
-      _botonTema(context),
-      IconButton(
-        onPressed: () => context.push(Rutas.solicitudes),
-        icon: const Icon(Icons.assignment_outlined),
-        tooltip: 'Mis solicitudes',
-      ),
-      IconButton(
-        onPressed: Sesion.cerrar,
-        icon: const Icon(Icons.logout),
-        tooltip: usuario == null
-            ? 'Cerrar sesión'
-            : 'Cerrar sesión (${usuario.usuario})',
-      ),
-    ];
-  }
-
-  Widget _botonTema(BuildContext context) {
-    return IconButton(
-      onPressed: () => PreferenciasUi.alternar(Theme.of(context).brightness),
-      icon: Icon(Theme.of(context).brightness == Brightness.dark
-          ? Icons.light_mode_outlined
-          : Icons.dark_mode_outlined),
-      tooltip: 'Cambiar el tema',
+    return PopupMenuButton<String>(
+      tooltip: 'Más opciones',
+      onSelected: (opcion) {
+        switch (opcion) {
+          case 'tema':
+            PreferenciasUi.alternar(Theme.of(context).brightness);
+          case 'solicitudes':
+            context.push(Rutas.solicitudes);
+          case 'salir':
+            Sesion.cerrar();
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: 'tema',
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(
+              esOscuro ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            ),
+            title: Text(esOscuro ? 'Tema claro' : 'Tema oscuro'),
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'solicitudes',
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.assignment_outlined),
+            title: Text('Mis solicitudes'),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'salir',
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.logout),
+            title: Text(
+              usuario == null
+                  ? 'Cerrar sesión'
+                  : 'Cerrar sesión (${usuario.usuario})',
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -343,8 +358,9 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
             lista.length == 1
                 ? '1 comunidad encontrada'
                 : '${lista.length} comunidades encontradas',
-            style: context.textos.bodyMedium
-                ?.copyWith(color: context.textoSecundario),
+            style: context.textos.bodyMedium?.copyWith(
+              color: context.textoSecundario,
+            ),
           ),
           const SizedBox(height: 12),
           RejillaResponsiva(
@@ -367,11 +383,14 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  LogoComunidad(logo: comunidad.logo, nombre: comunidad.nombre),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       comunidad.nombre,
-                      style: context.textos.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: context.textos.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   if (comunidad.siguiendo)
@@ -386,14 +405,26 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                [
-                  comunidad.categoria,
-                  if (comunidad.facultad.isNotEmpty) comunidad.facultad,
-                  '${comunidad.seguidores} seguidores',
-                ].join(' · '),
-                style: context.textos.bodySmall
-                    ?.copyWith(color: context.textoSecundario),
+              // La categoría destacada y el conteo en gris: es la línea que se
+              // repite en cada tarjeta, y así se distingue de un tirón.
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: comunidad.categoria,
+                      style: TextStyle(
+                        color: context.colores.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (comunidad.facultad.isNotEmpty)
+                      TextSpan(text: ' · ${comunidad.facultad}'),
+                    TextSpan(text: ' · ${comunidad.seguidores} seguidores'),
+                  ],
+                ),
+                style: context.textos.bodySmall?.copyWith(
+                  color: context.textoSecundario,
+                ),
               ),
               if (comunidad.nivelActividad != 'sin_verificar') ...[
                 const SizedBox(height: 6),
@@ -851,7 +882,20 @@ class _PantallaCatalogoState extends State<PantallaCatalogo> {
                   Positioned(
                     left: 16,
                     bottom: -24,
-                    child: Container(
+                    child: c.logo.isNotEmpty
+                        ? Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.white, width: 3),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: LogoComunidad(
+                              logo: c.logo,
+                              nombre: c.nombre,
+                              tamano: 52,
+                            ),
+                          )
+                        : Container(
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(

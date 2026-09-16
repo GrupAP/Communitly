@@ -25,7 +25,7 @@ class ComunidadAdmin(admin.ModelAdmin):
     search_fields = ['nombre', 'descripcion']
     inlines = [PublicacionInstagramInline]
     fieldsets = [
-        (None, {'fields': ['nombre', 'descripcion', 'categoria', 'facultad', 'activa']}),
+        (None, {'fields': ['nombre', 'descripcion', 'categoria', 'facultad', 'logo', 'activa']}),
         ('Contacto y redes', {'fields': ['contacto', 'instagram', 'nivel_actividad']}),
         ('Ficha informativa (opcional, deja en blanco lo que no sepas)', {
             'fields': ['carrera', 'fundado', 'reuniones', 'lugar_reuniones', 'membresia'],

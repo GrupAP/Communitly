@@ -39,6 +39,7 @@ class Comunidad(models.Model):
         null=True, blank=True,
     )
     contacto = models.EmailField(blank=True)
+    logo = models.CharField(max_length=120, blank=True)
     instagram = models.URLField(blank=True)
     # que tan activo esta el club en redes; se usa para mostrar señal de
     # vigencia real a estudiantes de colegio que exploran el catalogo

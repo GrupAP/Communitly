@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("comunidades", "0002_comunidad_gestores"),
+        ("comunidades", "0003_comunidad_logo"),
     ]
 
     operations = [
